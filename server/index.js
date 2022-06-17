@@ -99,7 +99,7 @@ function useAuth(handler) {
       const user = await User.findById(ObjectId(decoded.id))
       handler(req, res, user)
     } catch (err) {
-      res.json({ success: false, errors: [ err.message ] })      
+      res.json({ success: false, errors: [ err.message ] })
     }
   }
 }
@@ -171,7 +171,7 @@ async function getSpotifyTokens({ user, code }) {
 }
 
 app.get('/spotifyTokens', useAuth(async (req, res, user) => {
-  res.json(await getSpotifyTokens({user}))
+  res.json(await getSpotifyTokens({ user }))
 }))
 
 app.get('/spotifyAuthorizationCallback', useAuth((req, res, user) => {
@@ -206,6 +206,7 @@ function spotifyApi(axiosArgs) {
   axios(axiosArgs.config)
     .then(response => {
       if (axiosArgs.success && typeof axiosArgs.success === 'function') {
+        response.newTokens = axiosArgs.newTokens
         axiosArgs.success(response)
       }
     })
@@ -219,6 +220,7 @@ function spotifyApi(axiosArgs) {
         // new tokens have been added to user, but use returned values to avoid another db lookup for the updated user
         axiosArgs.user.spotifyAccessToken = spotifyAccessToken
         axiosArgs.user.spotifyRefreshToken = spotifyRefreshToken
+        axiosArgs.newTokens = true
         spotifyApi(axiosArgs)
       } else {
         if (axiosArgs.failure && typeof axiosArgs.failure === 'function') {
@@ -229,7 +231,7 @@ function spotifyApi(axiosArgs) {
 }
 
 app.post('/spotifySearch', useAuth((req, res, user) => {
-  const axiosArgs = {
+  spotifyApi({
     user,
     config: {
       url: 'https://api.spotify.com/v1/search',
@@ -245,18 +247,17 @@ app.post('/spotifySearch', useAuth((req, res, user) => {
     failure: (error) => {
       res.status(400).json({ error })
     }
-  }
-  spotifyApi(axiosArgs)
+  })
 }))
 
 app.post('/spotifyGetTracks', useAuth((req, res, user) => {
-  const axiosArgs = {
+  spotifyApi({
     user,
     config: {
       url: 'https://api.spotify.com/v1/tracks/',
       method: 'get',
       params: {
-        id: req.body.id        
+        id: req.body.id
       }
     },
     success: (response) => {
@@ -265,8 +266,27 @@ app.post('/spotifyGetTracks', useAuth((req, res, user) => {
     failure: (error) => {
       res.status(400).json({ error })
     }
-  }
-  spotifyApi(axiosArgs)
+  })
+}))
+
+app.post('/playSpotifyTrack', useAuth((req, res, user) => {
+  const { track, deviceId } = req.body
+  spotifyApi({
+    user,
+    config: {
+      url: `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+      method: 'put',
+      data: {
+        uris: [ track.uri ]
+      }
+    },
+    success: (response) => {
+      res.status(200).json({ response: response.data })
+    },
+    failure: (error) => {
+      res.status(400).json({ error })
+    }
+  })
 }))
 
 function ObjectId(id) {
