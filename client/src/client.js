@@ -1,90 +1,127 @@
-import Evt from './evt';
-import axios from 'axios';
+import Evt from "./evt";
+import axios from "axios";
 
 class Client extends Evt {
+  checkError(e) {
+    if (e.response && e.response.status === 401) {
+      this.fire("require-authentication");
+    }
+  }
 
   async login({ email, password }) {
     try {
       const response = await axios({
-        url: '/login',
-        method: 'post',
+        url: "/login",
+        method: "post",
         data: {
           email,
-          password
-        }
+          password,
+        },
       });
-      this.fire('login', response.data);
-    } catch (err) {
-      // TODO
+      this.fire("login", response.data);
+    } catch (e) {
+      this.checkError(e);
     }
   }
 
   async getUser() {
     try {
       const response = await axios({
-        url: '/user',
-        method: 'get'
-      })
-      this.fire('user', response.data)
-    } catch (err) {
-      // TODO
+        url: "/user",
+        method: "get",
+      });
+      this.fire("get-user", response.data);
+    } catch (e) {
+      this.checkError(e);
     }
   }
 
-  async getSpotifyTokens() {
+  async getSpotifyTokens(args) {
     try {
       const response = await axios({
-        url: '/spotifyTokens',
-        method: 'get',
+        url: "/spotify-tokens",
+        method: "get",
       });
-      this.fire('spotify-tokens', response.data)
-      return response.data
-    } catch (err) {
-      // TODO
+      response.data.track = args.track;
+      this.fire("get-spotify-tokens", response.data);
+      return response.data;
+    } catch (e) {
+      this.checkError(e);
     }
   }
 
-  _checkForNewTokens(response) {
+  _checkForUpdatedSpotifyTokens({ newTokens, spotifyAccessToken, track }) {
     // if expired tokens needed to be refreshed on the server, get the new tokens and fire the spotify-tokens event
-    if (response.newTokens) {
-      this.getSpotifyTokens()
+    if (newTokens) {
+      this.fire("get-spotify-tokens", { spotifyAccessToken, track });
     }
   }
 
   async spotifySearch(q) {
     try {
       const response = await axios({
-        url: '/spotifySearch',
-        method: 'post',
-        data: { q }
+        url: "/spotify-search",
+        method: "post",
+        data: { q },
       });
-      this._checkForNewTokens(response)
-      const tracks = response.data.response.tracks.items
-      this.fire('spotify-search', tracks)
-    } catch (err) {
-      // TODO
+      this._checkForUpdatedSpotifyTokens(response.data);
+      return response.data.tracks.items;
+      // this.fire('spotify-search', { tracks });
+    } catch (e) {
+      this.checkError(e);
     }
   }
 
-  async playSpotifyTrack(track, deviceId) {
+  async spotifyPlayTrack(track, deviceId) {
+    if (!deviceId) {
+      this.getSpotifyTokens({ track });
+      return;
+    }
     try {
       const response = await axios({
-        url: '/playSpotifyTrack',
-        method: 'post',
+        url: "/spotify-play-track",
+        method: "post",
         data: {
           track,
-          deviceId
-        }
-      })
-      this._checkForNewTokens(response)
+          deviceId,
+        },
+      });
+      this._checkForUpdatedSpotifyTokens({ ...response.data, track });
       if (response.status === 200) {
-        this.fire('play-spotify-track')
+        this.fire("spotify-play-track", { track });
       }
-    } catch (err) {
-      // TODO
+    } catch (e) {
+      this.checkError(e);
     }
   }
 
+  async createPost(data) {
+    try {
+      const response = await axios({
+        url: "/post",
+        method: "post",
+        data,
+      });
+      this.fire("create-post", response.data);
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
+  async getPost(postId) {
+    try {
+      const response = await axios({
+        url: "/post",
+        method: "get",
+        params: {
+          postId,
+        },
+      });
+      this.fire("get-post", response.data);
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
 }
 
 export default Client;

@@ -18,7 +18,7 @@ class Evt {
         target.listeners.set(evtName, existingListeners)
       }
     } else {
-      for (const [ evtName, existingListeners ] of this.listeners) {
+      for (const [evtName, existingListeners] of this.listeners) {
         target.listeners.set(evtName, existingListeners)
       }
     }
@@ -31,9 +31,9 @@ class Evt {
     if (!existingListeners) {
       existingListeners = new Map()
       this.listeners.set(evtName, existingListeners)
-    } 
-    existingListeners.set(fn, {fn: fn, scope: scope})
-    return () => { 
+    }
+    existingListeners.set(fn, { fn: fn, scope: scope })
+    return () => {
       this.un(evtName, fn)
     }
   }
@@ -46,9 +46,9 @@ class Evt {
     if (!existingListeners) {
       existingListeners = new Map()
       this.listeners.set(evtName, existingListeners)
-    } 
-    existingListeners.set(fn, {scope: scope, once: true})
-    return () => { 
+    }
+    existingListeners.set(fn, { scope: scope, once: true })
+    return () => {
       this.un(evtName, fn)
     }
   }
@@ -64,7 +64,7 @@ class Evt {
       }
     }
   }
-  
+
   /*
    * delete all events with the evtName
    * or deletes all events if evtName is boolean:true
@@ -83,10 +83,10 @@ class Evt {
   purgeScope(scope) {
     if (!scope) return
 
-    for (const [ evtName, evtMap ] of this.listeners) {
+    for (const [evtName, evtMap] of this.listeners) {
       if (evtMap.size) {
         let remaining = evtMap.size
-        for (const [ key, value ] of evtMap) {
+        for (const [key, value] of evtMap) {
           if (value.scope === scope) {
             evtMap.delete(key)
             remaining--
@@ -105,7 +105,7 @@ class Evt {
 
     const existingListeners = this.listeners.get(evtName)
     if (existingListeners) {
-      for (const [ evtFn, evtOb ] of existingListeners) {
+      for (const [evtFn, evtOb] of existingListeners) {
         if (typeof scope !== 'undefined') {
           evtFn.call(scope, payload)
         } else if (evtOb.scope) {
@@ -114,14 +114,14 @@ class Evt {
           evtFn.call(this, payload)
         }
         if (evtOb.once) {
-          existingListeners.delete(evtFn) 
+          existingListeners.delete(evtFn)
         }
       }
       if (!existingListeners.size) {
         this.listeners.delete(evtName)
       }
     }
-    if (evtName !== ANY_NAME) this.fire(ANY_NAME, {evt: evtName, payload: payload, scope: scope}, scope)
+    if (evtName !== ANY_NAME) this.fire(ANY_NAME, { evt: evtName, payload: payload, scope: scope }, scope)
   }
 }
 

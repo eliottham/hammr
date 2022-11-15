@@ -1,0 +1,86 @@
+import React, { useState, useContext, useEffect } from "react";
+import TextField from "@mui/material/TextField";
+import List from "@mui/material/List";
+import InputLabel from "@mui/material/InputLabel";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import Track from "./Track";
+import SearchBar from "./SearchBar";
+
+import ClientContext from "../contexts/client_context";
+
+function CreateComment() {
+  const client = useContext(ClientContext);
+
+  const [spotifyTrack, setSpotifyTrack] = useState();
+  const [lastQuery, setLastQuery] = useState("");
+  const [comment, setComment] = useState("");
+
+  function handleTrackOnClick(t) {
+    setSpotifyTrack(t);
+    setLastQuery(t.name);
+  }
+
+  return (
+    <Grid alignItems="stretch" container spacing={1} direction="column">
+      {!spotifyTrack && (
+        <Grid item>
+          <SearchBar
+            label="Track"
+            placeholder="Search Track"
+            customHandleTrackOnClick={handleTrackOnClick}
+            initialQuery={lastQuery}
+          />
+        </Grid>
+      )}
+      {spotifyTrack && (
+        <Grid item>
+          <InputLabel
+            shrink
+            size="small"
+            sx={{ margin: "22px 0px -20px 14px" }}
+          >
+            Track
+          </InputLabel>
+          <List sx={{ margin: "5px 0 -10px 0" }}>
+            <Track
+              track={spotifyTrack}
+              style={{
+                border: "1px solid rgb(82, 82, 82)",
+                borderRadius: "4px",
+                "&:hover": {
+                  backgroundColor: "rgba(82, 82, 82, 0.5)",
+                  borderColor: "white",
+                  cursor: "pointer",
+                },
+              }}
+              onClick={() => setSpotifyTrack()}
+            />
+          </List>
+        </Grid>
+      )}
+      <Grid item>
+        <TextField
+          fullWidth
+          label="Comment"
+          placeholder="What are your thoughts?"
+          multiline
+          rows={2}
+          onChange={(e) => setComment(e.target.value)}
+          value={comment}
+        />
+      </Grid>
+      <Grid item>
+        <Button
+          variant="contained"
+          onClick={() => client.createComment({ spotifyTrack, comment })}
+          disabled={!comment && !spotifyTrack}
+        >
+          Comment
+        </Button>
+      </Grid>
+    </Grid>
+  );
+}
+
+export default CreateComment;

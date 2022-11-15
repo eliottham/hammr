@@ -1,16 +1,19 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
 const User = mongoose.model(
-  'User',
+  "User",
   new mongoose.Schema(
     {
+      username: { type: String, required: true, unique: true },
       email: { type: String, required: true, unique: true },
       password: { type: String, required: true },
       spotifyAccessToken: { type: String },
-      spotifyRefreshToken: { type: String }
+      spotifyRefreshToken: { type: String },
+      post_ids: { type: Array },
+      comment_ids: { type: Array },
     },
-    { collection: 'users' }
+    { collection: "users" }
   )
-)
+);
 
-module.exports = User
+module.exports = User;
