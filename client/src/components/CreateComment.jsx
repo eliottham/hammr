@@ -4,17 +4,19 @@ import List from "@mui/material/List";
 import InputLabel from "@mui/material/InputLabel";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 import Track from "./Track";
 import SearchBar from "./SearchBar";
 
 import ClientContext from "../contexts/client_context";
 
-function CreateComment() {
+function CreateComment({ post_id }) {
   const client = useContext(ClientContext);
 
   const [spotifyTrack, setSpotifyTrack] = useState();
   const [lastQuery, setLastQuery] = useState("");
   const [comment, setComment] = useState("");
+  const [username, setUsername] = useState(localStorage.getItem("username"));
 
   function handleTrackOnClick(t) {
     setSpotifyTrack(t);
@@ -22,64 +24,71 @@ function CreateComment() {
   }
 
   return (
-    <Grid alignItems="stretch" container spacing={1} direction="column">
-      {!spotifyTrack && (
+    <>
+      {username && (
+        <Typography variant="caption">Comment as {username}</Typography>
+      )}
+      <Grid alignItems="stretch" container spacing={1} direction="column">
+        {!spotifyTrack && (
+          <Grid item>
+            <SearchBar
+              label="Track"
+              placeholder="Search Track"
+              customHandleTrackOnClick={handleTrackOnClick}
+              initialQuery={lastQuery}
+            />
+          </Grid>
+        )}
+        {spotifyTrack && (
+          <Grid item>
+            <InputLabel
+              shrink
+              size="small"
+              sx={{ margin: "22px 0px -20px 14px" }}
+            >
+              Track
+            </InputLabel>
+            <List sx={{ margin: "5px 0 -10px 0" }}>
+              <Track
+                track={spotifyTrack}
+                style={{
+                  border: "1px solid rgb(82, 82, 82)",
+                  borderRadius: "4px",
+                  "&:hover": {
+                    backgroundColor: "rgba(82, 82, 82, 0.5)",
+                    borderColor: "white",
+                    cursor: "pointer",
+                  },
+                }}
+                onClick={() => setSpotifyTrack()}
+              />
+            </List>
+          </Grid>
+        )}
         <Grid item>
-          <SearchBar
-            label="Track"
-            placeholder="Search Track"
-            customHandleTrackOnClick={handleTrackOnClick}
-            initialQuery={lastQuery}
+          <TextField
+            fullWidth
+            label="Comment"
+            placeholder="What are your thoughts?"
+            multiline
+            rows={2}
+            onChange={(e) => setComment(e.target.value)}
+            value={comment}
           />
         </Grid>
-      )}
-      {spotifyTrack && (
         <Grid item>
-          <InputLabel
-            shrink
-            size="small"
-            sx={{ margin: "22px 0px -20px 14px" }}
+          <Button
+            variant="contained"
+            onClick={() =>
+              client.createComment({ spotifyTrack, comment, post_id })
+            }
+            disabled={!comment && !spotifyTrack}
           >
-            Track
-          </InputLabel>
-          <List sx={{ margin: "5px 0 -10px 0" }}>
-            <Track
-              track={spotifyTrack}
-              style={{
-                border: "1px solid rgb(82, 82, 82)",
-                borderRadius: "4px",
-                "&:hover": {
-                  backgroundColor: "rgba(82, 82, 82, 0.5)",
-                  borderColor: "white",
-                  cursor: "pointer",
-                },
-              }}
-              onClick={() => setSpotifyTrack()}
-            />
-          </List>
+            Comment
+          </Button>
         </Grid>
-      )}
-      <Grid item>
-        <TextField
-          fullWidth
-          label="Comment"
-          placeholder="What are your thoughts?"
-          multiline
-          rows={2}
-          onChange={(e) => setComment(e.target.value)}
-          value={comment}
-        />
       </Grid>
-      <Grid item>
-        <Button
-          variant="contained"
-          onClick={() => client.createComment({ spotifyTrack, comment })}
-          disabled={!comment && !spotifyTrack}
-        >
-          Comment
-        </Button>
-      </Grid>
-    </Grid>
+    </>
   );
 }
 

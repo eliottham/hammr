@@ -1,5 +1,4 @@
 import { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Grid,
   Paper,
@@ -11,23 +10,21 @@ import {
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import ClientContext from "../contexts/client_context";
 
 function Login() {
   const client = useContext(ClientContext);
-  const navigate = useNavigate();
+  const theme = useTheme();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const onLogin = ({ success }) => {
-      if (success) {
-        client.getUser();
-        alert("Login successful");
-        navigate("/");
-      } else {
-        alert("Invalid username and/or password");
+    const onLogin = ({ error }) => {
+      if (error) {
+        setError(error);
       }
     };
 
@@ -36,24 +33,23 @@ function Login() {
     return () => {
       client.un("login", onLogin);
     };
-  }, [client, navigate]);
+  }, []);
 
   async function login() {
     client.login({ email, password });
   }
 
-  const paperStyle = {
-    padding: 20,
-    height: "55vh",
-    width: "25%",
-    margin: "100px auto",
-  };
-  const buttonStyle = { margin: "8px 0" };
-  const linksStyle = { paddingTop: 30, textAlign: "center" };
-
   return (
     <Grid>
-      <Paper elevation={10} style={paperStyle}>
+      <Paper
+        elevation={10}
+        sx={{
+          padding: "20px",
+          height: "55vh",
+          width: "25vw",
+          margin: "100px auto",
+        }}
+      >
         <Grid align="center">
           <Avatar />
           <h2>Login</h2>
@@ -64,7 +60,11 @@ function Login() {
           fullWidth
           required
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setError("");
+          }}
+          error={!!error}
           style={{ paddingBottom: "8px" }}
           onKeyPress={(e) => {
             if (e.which === 13) {
@@ -79,36 +79,61 @@ function Login() {
           fullWidth
           required
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setError("");
+          }}
+          error={!!error}
           onKeyPress={(e) => {
             if (e.which === 13) {
               login();
             }
           }}
         />
+        {error && (
+          <Typography sx={{ color: "#f44336" }} variant="caption">
+            {error}
+            <br />
+          </Typography>
+        )}
         <FormControlLabel
-          control={<Checkbox name="checkedB" color="primary" />}
+          control={<Checkbox color="primary" />}
           label="Remember me"
         />
         <Button
           type="submit"
           color="primary"
           variant="contained"
-          style={buttonStyle}
+          sx={{ margin: "8px 0" }}
           fullWidth
           onClick={login}
         >
           Login
         </Button>
-        <div style={linksStyle}>
-          <Typography>
-            <Link href="#">Forgot password?</Link>
+        <div style={{ paddingTop: 30, textAlign: "center" }}>
+          <Typography
+            sx={{
+              color: theme.palette.primary.main,
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+            onClick={() => {}}
+          >
+            Forgot password?
           </Typography>
-          <Typography>
-            {" "}
-            Don't have an account?&emsp;
-            <Link href="/register">Sign Up</Link>
-          </Typography>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            Don't have an account?&nbsp;
+            <Typography
+              sx={{
+                color: theme.palette.primary.main,
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
+              onClick={() => client.fire("register-link-click")}
+            >
+              Sign Up
+            </Typography>
+          </div>
         </div>
       </Paper>
     </Grid>

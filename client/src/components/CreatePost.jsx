@@ -15,6 +15,7 @@ import ClientContext from "../contexts/client_context";
 function CreatePost() {
   const client = useContext(ClientContext);
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const [title, setTitle] = useState("");
   const [spotifyTrack, setSpotifyTrack] = useState();
@@ -22,7 +23,7 @@ function CreatePost() {
   const [lastQuery, setLastQuery] = useState("");
 
   useEffect(() => {
-    const onCreatePost = ({ post }) => {
+    const onCreatePost = (post) => {
       navigate("/post/" + post._id);
     };
     client.on("create-post", onCreatePost);
@@ -30,7 +31,7 @@ function CreatePost() {
     return () => {
       client.un("create-post", onCreatePost);
     };
-  }, [client, navigate]);
+  }, [navigate]);
 
   function handleTrackOnClick(t) {
     setSpotifyTrack(t);

@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 const User = require("./models/user.model.js");
 const Post = require("./models/post.model.js");
+const Comment = require("./models/comment.model.js");
+// const Profile = require("./modles/profile.model.js");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const axios = require("axios");
@@ -75,28 +77,39 @@ app.post("/login", async (req, res) => {
         {
           id: user._id,
           email: user.email,
+          username: user.username,
         },
         JWT_SECRET,
         {
           // expiresIn: '72h'
         }
       );
+      delete user.password;
       res.cookie("token", token, { httpOnly: true });
-      return res.json({ success: true, user });
+      return res.json({
+        success: true,
+        userDetails: { user_id: user._id, username: user.username },
+      });
     } else {
-      return res.json({ success: false, error: "Could not find user" });
+      return res.json({
+        success: false,
+        error: "Incorrect username or password",
+      });
     }
   } catch (err) {
     res.status(401).json({ error: err.message });
   }
 });
 
+app.post("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.end();
+});
+
 app.get(
-  "/user",
+  "/current-user",
   useAuth(async (req, res, user) => {
-    if (user) {
-      res.json({ success: true, user });
-    }
+    res.status(200).json({ user_id: user._id, username: user.username });
   })
 );
 
@@ -108,7 +121,7 @@ function useAuth(handler) {
       const user = await User.findById(new ObjectId(decoded.id));
       handler(req, res, user);
     } catch (err) {
-      res.status(401).json({ error: err.message });
+      res.status(401).send("You must be logged in to continue");
     }
   };
 }
@@ -155,7 +168,7 @@ async function getSpotifyTokens({ user, code }) {
         spotifyRefreshToken = response.data.refresh_token;
         await User.findOneAndUpdate(
           {
-            _id: new ObjectId(user._id),
+            _id: user._id,
           },
           {
             spotifyAccessToken: spotifyAccessToken,
@@ -166,7 +179,7 @@ async function getSpotifyTokens({ user, code }) {
         spotifyAccessToken = response.data.access_token;
         await User.findOneAndUpdate(
           {
-            _id: new ObjectId(user._id),
+            _id: user._id,
           },
           {
             spotifyAccessToken: spotifyAccessToken,
@@ -280,8 +293,9 @@ app.post(
       success: (response) => {
         res.status(200).json(response);
       },
-      failure: (error) => {
-        res.status(400).json({ error });
+      failure: (err) => {
+        console.log(err);
+        res.status(500).send(err);
       },
     });
   })
@@ -302,8 +316,9 @@ app.post(
       success: (response) => {
         res.status(200).json(response);
       },
-      failure: (error) => {
-        res.status(400).json({ error });
+      failure: (err) => {
+        console.log(err);
+        res.status(500).send(err);
       },
     });
   })
@@ -325,8 +340,9 @@ app.post(
       success: (response) => {
         res.status(200).json(response);
       },
-      failure: (error) => {
-        res.status(400).json({ error });
+      failure: (err) => {
+        console.log(err);
+        res.status(500).send(err);
       },
     });
   })
@@ -338,34 +354,100 @@ app.post(
     const { title, spotifyTrack, description } = req.body;
     try {
       const post = await Post.create({
-        user_id: new ObjectId(user._id),
-        username: user.username,
+        author: user._id,
         title,
         spotifyTrack,
         description,
       });
-      await User.findByIdAndUpdate(new ObjectId(user._id), {
-        post_ids: (user.post_ids || []).concat(new ObjectId(post._id)),
-      });
-      res.status(200).json({ post });
+      res.status(200).json(post);
     } catch (err) {
-      // TODO
+      console.log(err);
+      res.status(500).send(err);
     }
   })
 );
 
-app.get("/post", async (req, res) => {
-  try {
-    const post = await Post.findById(new ObjectId(req.query.postId));
-    if (post) {
-      res.status(200).json({ post });
-    } else {
-      res.status(404).json({ error: "Post not found" });
+app.delete(
+  "/post/:post_id",
+  useAuth(async (req, res, user) => {
+    try {
+      const post = await Post.findById(new ObjectId(req.params.post_id));
+      if (post.author.equals(user._id)) {
+        await post.deleteOne();
+        res.sendStatus(200);
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
     }
+  })
+);
+
+app.get("/post/:post_id", async (req, res) => {
+  try {
+    const post = await Post.findById(new ObjectId(req.params.post_id)).populate(
+      {
+        path: "comments",
+        populate: {
+          path: "author",
+        },
+      }
+    );
+    post ? res.status(200).json(post) : res.status(404).send("Post not found");
   } catch (err) {
-    // TODO
+    console.log(err);
+    res.status(500).send(err);
   }
 });
+
+app.post(
+  "/comment",
+  useAuth(async (req, res, user) => {
+    const { spotifyTrack, comment, post_id } = req.body;
+    try {
+      const newComment = await Comment.create({
+        author: user._id,
+        post: new ObjectId(post_id),
+        spotifyTrack,
+        comment,
+      });
+      // if the comment was made on a post, return the post in the comment to rerender
+      if (post_id) {
+        await newComment.populate({
+          path: "post",
+          populate: {
+            path: "comments",
+            populate: {
+              path: "author",
+            },
+          },
+        });
+      }
+      res.status(200).json(newComment);
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
+
+app.delete(
+  "/comment/:comment_id",
+  useAuth(async (req, res, user) => {
+    try {
+      const comment = await Comment.findById(
+        new ObjectId(req.params.comment_id)
+      );
+      if (comment.author.equals(user._id)) {
+        const deletedComment = await comment.deleteOne();
+        res.status(200).json(deletedComment);
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
 
 app.listen(1337, () => {
   console.log("Server started on 1337");

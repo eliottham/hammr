@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
 
 const User = mongoose.model(
   "User",
@@ -9,8 +10,9 @@ const User = mongoose.model(
       password: { type: String, required: true },
       spotifyAccessToken: { type: String },
       spotifyRefreshToken: { type: String },
-      post_ids: { type: Array },
-      comment_ids: { type: Array },
+      posts: [{ type: ObjectId, ref: "Post" }],
+      comments: { type: ObjectId, ref: "Comment" },
+      timestamp: { type: Date, default: Date.now },
     },
     { collection: "users" }
   )

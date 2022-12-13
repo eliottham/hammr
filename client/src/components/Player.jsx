@@ -32,7 +32,7 @@ function Player() {
     return () => {
       client.un("spotify-play-track", onSpotifyPlayTrack);
     };
-  }, [client]);
+  }, []);
 
   useEffect(() => {
     const onGetSpotifyTokens = ({ spotifyAccessToken, track }) => {
@@ -89,7 +89,7 @@ function Player() {
     return () => {
       client.un("get-spotify-tokens", onGetSpotifyTokens);
     };
-  }, [client]);
+  }, []);
 
   useEffect(() => {
     let intervalId;

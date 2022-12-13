@@ -2,106 +2,90 @@ import React, { useState, useContext, useEffect } from "react";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ClientContext from "../contexts/client_context";
-import Track from "./Track";
 import CreateComment from "./CreateComment";
-import List from "@mui/material/List";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import PauseIcon from "@mui/icons-material/Pause";
+import PostCommentTrack from "./PostCommentTrack";
+import Comment from "./Comment";
+import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 
 function Post() {
   const client = useContext(ClientContext);
-  const { id } = useParams();
+  const navigate = useNavigate();
+  const { post_id } = useParams();
 
   const [post, setPost] = useState({});
-  const [postTrackPlaying, setPostTrackPlaying] = useState(false);
-  const [playPostTrackFromStart, setPlayPostTrackFromStart] = useState(true);
 
   useEffect(() => {
-    const onGetPost = (response) => {
-      setPost(response.post);
+    const onGetPost = (responsePost) => {
+      setPost(responsePost);
     };
     client.on("get-post", onGetPost);
-    client.getPost(id);
+    client.getPost(post_id);
+
+    const onDeletePost = () => {
+      navigate("/");
+    };
+    client.on("delete-post", onDeletePost);
 
     return () => {
       client.un("get-post", onGetPost);
+      client.un("delete-post", onDeletePost);
     };
-  }, [client, id]);
-
-  useEffect(() => {
-    const onSpotifyPlayerStateChanged = ({
-      paused,
-      current_track,
-      position,
-      duration,
-    }) => {
-      if (post.spotifyTrack.id === current_track.id) {
-        setPostTrackPlaying(!paused);
-        setPlayPostTrackFromStart(false);
-        if (position === duration) {
-          setPlayPostTrackFromStart(true);
-          setPostTrackPlaying(false);
-        }
-      } else {
-        setPlayPostTrackFromStart(true);
-        setPostTrackPlaying(false);
-      }
-    };
-    client.on("spotify-player-state-changed", onSpotifyPlayerStateChanged);
-    return () => {
-      client.un("spotify-player-state-changed", onSpotifyPlayerStateChanged);
-    };
-  }, [client, post]);
-
-  function handlePlayTrackClick() {
-    if (playPostTrackFromStart) {
-      client.spotifyPlayTrack(post.spotifyTrack, client.spotifyDeviceId);
-    } else if (postTrackPlaying) {
-      client.spotifyPlayer.pause();
-    } else {
-      client.spotifyPlayer.resume();
-    }
-  }
+  }, [post_id]);
 
   const Item = styled(Paper)(({ theme }) => ({
     position: "relative",
-    margin: "10px auto 0px auto !important",
-    padding: "20px",
+    margin: "5px auto 5px auto !important",
+    padding: "10px 20px 10px 20px",
     textAlign: "left",
     width: "50%",
   }));
 
   return (
-    <React.Fragment>
+    <Box sx={{ margin: "5px 0 5px 0" }}>
       <Stack spacing={1}>
         <Item>
           <h2>{post.title}</h2>
-          <Stack
-            direction="row"
-            spacing={0}
-            sx={{
-              backgroundColor: "rgba(82, 82, 82, 0.5)",
-              borderRadius: "10px",
-              marginBottom: "25px",
-            }}
-          >
-            <IconButton onClick={handlePlayTrackClick} size="large">
-              {postTrackPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-            </IconButton>
-            <List>
-              <Track track={post.spotifyTrack} style={{}} />
-            </List>
-          </Stack>
+          <PostCommentTrack track={post.spotifyTrack} />
           <p>{post.description}</p>
+          {localStorage.getItem("user_id") === post.author && (
+            <Stack direction="row">
+              <Tooltip title="Delete Post">
+                <IconButton onClick={() => client.deletePost(post_id)}>
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          )}
         </Item>
         <Item>
-          <CreateComment />
+          <CreateComment post_id={post_id} />
         </Item>
+        {post.comments && (
+          <Item>
+            {post.comments.map((comment, i) => {
+              let sx = { margin: "5px 0 5px 0" };
+              if (i === 0) {
+                sx = { margin: "0 0 5px 0" };
+              } else if (i === post.comments.length - 1) {
+                sx = { margin: "5px 0 0 0" };
+              }
+              return (
+                <Box key={comment._id} sx={sx}>
+                  <Comment {...comment} />
+                  {i < post.comments.length - 1 ? <Divider /> : null}
+                </Box>
+              );
+            })}
+          </Item>
+        )}
       </Stack>
-    </React.Fragment>
+    </Box>
   );
 }
 

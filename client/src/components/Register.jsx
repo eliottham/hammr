@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Grid,
@@ -9,8 +9,12 @@ import {
   Typography,
   Link,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import ClientContext from "../contexts/client_context";
 
 function Register() {
+  const client = useContext(ClientContext);
+  const theme = useTheme();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,18 +41,17 @@ function Register() {
     }
   }
 
-  const paperStyle = {
-    padding: 20,
-    height: "55vh",
-    width: "25%",
-    margin: "100px auto",
-  };
-  const buttonStyle = { margin: "8px 0" };
-  const linksStyle = { paddingTop: 30, textAlign: "center" };
-
   return (
     <Grid>
-      <Paper elevation={10} style={paperStyle}>
+      <Paper
+        elevation={10}
+        sx={{
+          padding: "20px",
+          height: "55vh",
+          width: "25vw",
+          margin: "100px auto",
+        }}
+      >
         <Grid align="center">
           <Avatar />
           <h2>Sign Up</h2>
@@ -100,18 +103,26 @@ function Register() {
           color="primary"
           variant="contained"
           disabled={disableButton}
-          style={buttonStyle}
+          sx={{ margin: "8px 0" }}
           fullWidth
           onClick={registerUser}
         >
           Sign Up
         </Button>
-        <div style={linksStyle}>
-          <Typography>
-            {" "}
-            Already have an account?&emsp;
-            <Link href="/login">Login Here</Link>
-          </Typography>
+        <div style={{ paddingTop: 30, textAlign: "center" }}>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            Already have an account?&nbsp;
+            <Typography
+              sx={{
+                color: theme.palette.primary.main,
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
+              onClick={() => client.fire("login-link-click")}
+            >
+              Login
+            </Typography>
+          </div>
         </div>
       </Paper>
     </Grid>

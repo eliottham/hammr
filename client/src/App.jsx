@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { CssBaseline } from "@mui/material";
+import { CssBaseline, Dialog } from "@mui/material";
 
 import { ClientProvider } from "./contexts/client_context";
-import { UserProvider } from "./contexts/user_context";
-import { SpotifyPlayerProvider } from "./contexts/spotify_player_context";
 
 import Client from "./client";
 
@@ -24,7 +22,8 @@ const theme = createTheme({
     primary: {
       // main: '#ffbb00',
       // main: '#0070ff'
-      main: "#b38500",
+      // main: "#b38500",
+      main: "rgba(56, 82, 56, 1)",
     },
     mode: "dark",
   },
@@ -33,26 +32,42 @@ const theme = createTheme({
 const pathsWithoutNavAndPlayer = ["/login", "/register"];
 
 const App = () => {
+  const [openLoginDialog, setOpenLoginDialog] = useState(false);
+  const [openRegisterDialog, setOpenRegisterDialog] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const onGetUser = (response) => {
-      if (response.success) {
+    const onLogin = ({ success, userDetails }) => {
+      if (success) {
+        localStorage.setItem("user_id", userDetails.user_id);
+        localStorage.setItem("username", userDetails.username);
         client.getSpotifyTokens();
-      } else {
-        navigate("/login");
+        setOpenLoginDialog(false);
+        navigate(0);
       }
     };
-    client.on("get-user", onGetUser);
+    client.on("login", onLogin);
 
     const onRequireAuthentication = () => {
-      navigate("/login");
+      setOpenLoginDialog(true);
+      setOpenRegisterDialog(false);
     };
     client.on("require-authentication", onRequireAuthentication);
+    client.on("login-link-click", onRequireAuthentication);
+
+    const onRegisterLinkClick = () => {
+      setOpenRegisterDialog(true);
+      setOpenLoginDialog(false);
+    };
+    client.on("register-link-click", onRegisterLinkClick);
 
     return () => {
-      client.un("get-user", onGetUser);
+      client.un("login", onLogin);
+      client.un("require-authentication", onRequireAuthentication);
+      client.un("login-link-click", onRequireAuthentication);
+      client.un("register-link-click", onRegisterLinkClick);
     };
   }, []);
 
@@ -61,13 +76,21 @@ const App = () => {
       <ClientProvider value={client}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
+          <Dialog
+            open={openLoginDialog}
+            onClose={() => setOpenLoginDialog(false)}
+            PaperComponent={Login}
+          />
+          <Dialog
+            open={openRegisterDialog}
+            onClose={() => setOpenLoginDialog(false)}
+            PaperComponent={Register}
+          />
           {!pathsWithoutNavAndPlayer.includes(location.pathname) && <NavBar />}
           <Routes>
             <Route path="/" exact element={<Dashboard />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
             <Route path="/post" element={<CreatePost />} />
-            <Route path="/post/:id" element={<Post />} />
+            <Route path="/post/:post_id" element={<Post />} />
           </Routes>
           {!pathsWithoutNavAndPlayer.includes(location.pathname) && <Player />}
         </ThemeProvider>
