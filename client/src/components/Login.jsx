@@ -22,16 +22,13 @@ function Login() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const onLogin = ({ error }) => {
-      if (error) {
-        setError(error);
-      }
+    const onLoginError = ({ error }) => {
+      setError(error);
     };
-
-    client.on("login", onLogin);
+    client.on("login-error", onLoginError);
 
     return () => {
-      client.un("login", onLogin);
+      client.un("login-error", onLoginError);
     };
   }, []);
 

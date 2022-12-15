@@ -16,7 +16,7 @@ const JWT_SECRET = "secret123";
 const SPOTIFY_CLIENT_ID = "2f11b20a4be74840a549fb4d5d6783c1";
 const SPOTIFY_CLIENT_SECRET_KEY = "b852a8dc6a27420a9df7c0b8ed2a79ce";
 const SPOTIFY_REDIRECT_URI =
-  "http://localhost:1337/spotifyAuthorizationCallback";
+  "http://localhost:1337/spotify-authorization-callback";
 const SPOTIFY_USER_SCOPE =
   "user-read-private user-read-email user-read-playback-state user-modify-playback-state user-follow-read user-library-modify user-library-read streaming playlist-modify-private user-read-currently-playing user-read-recently-played";
 
@@ -55,12 +55,18 @@ app.post("/register", async (req, res) => {
   console.log(req.body);
   try {
     await User.create({
+      username: req.body.username,
       email: req.body.email,
       password: req.body.password,
     });
-    res.json({ status: 200 });
+    res.sendStatus(200);
   } catch (err) {
-    res.json({ status: 400, error: "Email already exists" });
+    // duplicate key error
+    if (err.code === 11000) {
+      res.status(409).json({ errorFields: Object.keys(err.keyValue) });
+    } else {
+      res.status(500).json(err);
+    }
   }
 });
 
@@ -84,20 +90,15 @@ app.post("/login", async (req, res) => {
           // expiresIn: '72h'
         }
       );
-      delete user.password;
       res.cookie("token", token, { httpOnly: true });
-      return res.json({
-        success: true,
-        userDetails: { user_id: user._id, username: user.username },
-      });
+      res.status(200).json({ user_id: user._id, username: user.username });
     } else {
-      return res.json({
-        success: false,
+      res.status(401).json({
         error: "Incorrect username or password",
       });
     }
   } catch (err) {
-    res.status(401).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -137,7 +138,7 @@ function generateRandomString(length) {
   return result;
 }
 
-async function getSpotifyTokens({ user, code }) {
+async function getAndUpdateSpotifyTokens(user, code) {
   const params = code
     ? {
         code: code || null,
@@ -200,7 +201,7 @@ async function getSpotifyTokens({ user, code }) {
 app.get(
   "/spotify-tokens",
   useAuth(async (req, res, user) => {
-    res.json(await getSpotifyTokens({ user }));
+    res.json(await getAndUpdateSpotifyTokens(user));
   })
 );
 
@@ -218,7 +219,7 @@ app.get(
         )
         .toString();
     } else {
-      getSpotifyTokens({ user, code: req.query.code });
+      getAndUpdateSpotifyTokens(user, req.query.code);
       res.redirect("http://localhost:3000/");
     }
   })
@@ -240,21 +241,17 @@ app.get("/spotify-authorization", (req, res) => {
   );
 });
 
-function spotifyApi(axiosArgs) {
-  axiosArgs.config.headers = {
-    Authorization: `Bearer ${axiosArgs.user.spotifyAccessToken}`,
+function spotifyApi(args) {
+  args.spotifyRequest.headers = {
+    Authorization: `Bearer ${args.user.spotifyAccessToken}`,
   };
-  axios(axiosArgs.config)
+  axios(args.spotifyRequest)
     .then((response) => {
-      if (axiosArgs.success && typeof axiosArgs.success === "function") {
-        if (axiosArgs.newTokens) {
-          response.data.newTokens = axiosArgs.newTokens;
-          response.data.spotifyAccessToken = axiosArgs.user.spotifyAccessToken;
-          response.data.spotifyRefreshToken =
-            axiosArgs.user.spotifyRefreshToken;
-        }
-        axiosArgs.success(response.data);
+      // add the new token if it exists to the response so the client can recreate the web player with the token authentication
+      if (args.spotifyAccessToken) {
+        response.data.spotifyAccessToken = args.spotifyAccessToken;
       }
+      args.success(response.data);
     })
     .catch(async (error) => {
       if (typeof error.toJSON === "function") {
@@ -262,17 +259,27 @@ function spotifyApi(axiosArgs) {
       }
       // Bad or expired token, need to re-authenticate with refresh token
       if (error.status === 401) {
-        let { spotifyAccessToken, spotifyRefreshToken } =
-          await getSpotifyTokens({ user: axiosArgs.user });
+        let { spotifyAccessToken } = await getAndUpdateSpotifyTokens(args.user);
         // new tokens have been added to user in db by getSpotifyTokens(), but use returned values to avoid another db lookup for the updated user
-        axiosArgs.user.spotifyAccessToken = spotifyAccessToken;
-        axiosArgs.user.spotifyRefreshToken = spotifyRefreshToken;
-        axiosArgs.newTokens = true;
-        spotifyApi(axiosArgs);
-      } else {
-        if (axiosArgs.failure && typeof axiosArgs.failure === "function") {
-          axiosArgs.failure(error);
+        if (spotifyAccessToken) {
+          args.spotifyAccessToken = spotifyAccessToken;
+          spotifyApi(args);
+        } else {
+          // no tokens found, spotify authorization required
+          args.failure({
+            status: 420,
+            statusMessage: "Spotify Authorization Required",
+            data: {
+              error: "Spotify Authorization Required",
+            },
+          });
         }
+      } else {
+        args.failure({
+          status: error.status,
+          statusMessage: error.statusText,
+          data: error.data,
+        });
       }
     });
 }
@@ -282,7 +289,7 @@ app.post(
   useAuth((req, res, user) => {
     spotifyApi({
       user,
-      config: {
+      spotifyRequest: {
         url: "https://api.spotify.com/v1/search",
         method: "get",
         params: {
@@ -293,9 +300,10 @@ app.post(
       success: (response) => {
         res.status(200).json(response);
       },
-      failure: (err) => {
-        console.log(err);
-        res.status(500).send(err);
+      failure: (response) => {
+        console.log(response);
+        res.statusMessage = response.statusMessage;
+        res.status(response.status).json(response.data);
       },
     });
   })
@@ -306,7 +314,7 @@ app.post(
   useAuth((req, res, user) => {
     spotifyApi({
       user,
-      config: {
+      spotifyRequest: {
         url: "https://api.spotify.com/v1/tracks/",
         method: "get",
         params: {
@@ -316,9 +324,10 @@ app.post(
       success: (response) => {
         res.status(200).json(response);
       },
-      failure: (err) => {
-        console.log(err);
-        res.status(500).send(err);
+      failure: (response) => {
+        console.log(response);
+        res.statusMessage = response.statusMessage;
+        res.status(response.status).json(response.data);
       },
     });
   })
@@ -330,7 +339,7 @@ app.post(
     const { track, deviceId } = req.body;
     spotifyApi({
       user,
-      config: {
+      spotifyRequest: {
         url: `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
         method: "put",
         data: {
@@ -340,9 +349,10 @@ app.post(
       success: (response) => {
         res.status(200).json(response);
       },
-      failure: (err) => {
-        console.log(err);
-        res.status(500).send(err);
+      failure: (response) => {
+        console.log(response);
+        res.statusMessage = response.statusMessage;
+        res.status(response.status).json(response.data);
       },
     });
   })

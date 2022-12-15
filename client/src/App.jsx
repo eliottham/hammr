@@ -14,6 +14,7 @@ import Player from "./components/Player";
 import NavBar from "./components/NavBar";
 import CreatePost from "./components/CreatePost";
 import Post from "./components/Post";
+import SpotifyAuthorization from "./components/SpotifyAuhorization";
 
 const client = new Client();
 
@@ -34,6 +35,7 @@ const pathsWithoutNavAndPlayer = ["/login", "/register"];
 const App = () => {
   const [openLoginDialog, setOpenLoginDialog] = useState(false);
   const [openRegisterDialog, setOpenRegisterDialog] = useState(false);
+  const [openSpotifyAuthDialog, setOpenSpotifyAuthDialog] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -63,6 +65,16 @@ const App = () => {
     };
     client.on("register-link-click", onRegisterLinkClick);
 
+    const onRequireSpotifyAuthorization = () => {
+      setOpenSpotifyAuthDialog(true);
+    };
+    client.on("require-spotify-authorization", onRequireSpotifyAuthorization);
+
+    const onSpotifyAuthorizationLinkClick = () => {
+      setOpenSpotifyAuthDialog(false);
+    };
+    client.on("spotify-authorization-link-click");
+
     return () => {
       client.un("login", onLogin);
       client.un("require-authentication", onRequireAuthentication);
@@ -85,6 +97,11 @@ const App = () => {
             open={openRegisterDialog}
             onClose={() => setOpenLoginDialog(false)}
             PaperComponent={Register}
+          />
+          <Dialog
+            open={openSpotifyAuthDialog}
+            onClose={() => setOpenSpotifyAuthDialog(false)}
+            PaperComponent={SpotifyAuthorization}
           />
           {!pathsWithoutNavAndPlayer.includes(location.pathname) && <NavBar />}
           <Routes>

@@ -5,9 +5,30 @@ class Client extends Evt {
   checkError(e) {
     const status = e.response && e.response.status;
     if (status === 401) {
+      // prompt login
       this.fire("require-authentication");
     } else if (status === 404) {
+      // file not found page
       this.fire("not-found", e.response && e.response.data);
+    } else if (status === 420) {
+      // prompt spotify authorization
+      this.fire("require-spotify-authorization");
+    } else {
+      // show error
+      this.fire("error", e.response && e.response.data);
+      // TODO: add error listener - check for error property and errors array
+    }
+  }
+
+  async register(data) {
+    try {
+      await axios.post("/register", data);
+    } catch (e) {
+      if (e.response.status === 409) {
+        this.fire("register-error", e.response.data);
+      } else {
+        this.checkError(e);
+      }
     }
   }
 
@@ -16,7 +37,11 @@ class Client extends Evt {
       const response = await axios.post("/login", data);
       this.fire("login", response.data);
     } catch (e) {
-      this.checkError(e);
+      if (e.response.status === 401) {
+        this.fire("login-error", e.response.data);
+      } else {
+        this.checkError(e);
+      }
     }
   }
 
@@ -49,9 +74,9 @@ class Client extends Evt {
     }
   }
 
-  _checkForUpdatedSpotifyTokens({ newTokens, spotifyAccessToken, track }) {
-    // if expired tokens needed to be refreshed on the server, get the new tokens and fire the spotify-tokens event
-    if (newTokens) {
+  _checkForUpdatedSpotifyTokens({ spotifyAccessToken, track }) {
+    // if expired tokens needed to be refreshed on the server,  fire the get-spotify-tokens event with the new token
+    if (spotifyAccessToken) {
       this.fire("get-spotify-tokens", { spotifyAccessToken, track });
     }
   }
@@ -61,7 +86,6 @@ class Client extends Evt {
       const response = await axios.post("/spotify-search", { q });
       this._checkForUpdatedSpotifyTokens(response.data);
       return response.data.tracks.items;
-      // this.fire('spotify-search', { tracks });
     } catch (e) {
       this.checkError(e);
       return [];

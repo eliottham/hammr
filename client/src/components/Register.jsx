@@ -17,29 +17,23 @@ function Register() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmPwError, setConfirmPasswordError] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
 
-  async function registerUser(event) {
-    event.preventDefault();
-    const response = await fetch("/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    });
+  useState(() => {
+    const onRegisterError = ({ errorFields }) => {
+      console.log(errorFields);
+      // TODO add error messages for fields
+    };
+    client.on("register-error", onRegisterError);
 
-    const data = await response.json();
-    if (data.stratus === "ok") {
-      navigate.push("/login");
-    }
-  }
+    return () => {
+      client.un("register-error", onRegisterError);
+    };
+  }, []);
 
   return (
     <Grid>
@@ -66,6 +60,15 @@ function Register() {
           style={{ paddingBottom: "8px" }}
         />
         <TextField
+          label="Username"
+          placeholder="Enter username"
+          fullWidth
+          required
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          style={{ paddingBottom: "8px" }}
+        />
+        <TextField
           label="Password"
           placeholder="Enter password"
           type="password"
@@ -75,7 +78,7 @@ function Register() {
           onChange={(e) => {
             setPassword(e.target.value);
             setConfirmPasswordError(
-              confirmPassword && e.target.value !== confirmPassword
+              !!(confirmPassword && e.target.value !== confirmPassword)
             );
             setDisableButton(e.target.value !== confirmPassword);
           }}
@@ -93,7 +96,7 @@ function Register() {
           onChange={(e) => {
             setConfirmPassword(e.target.value);
             setConfirmPasswordError(
-              e.target.value && password !== e.target.value
+              !!(e.target.value && password !== e.target.value)
             );
             setDisableButton(password !== e.target.value);
           }}
@@ -105,7 +108,13 @@ function Register() {
           disabled={disableButton}
           sx={{ margin: "8px 0" }}
           fullWidth
-          onClick={registerUser}
+          onClick={() => {
+            client.register({
+              email,
+              username,
+              password,
+            });
+          }}
         >
           Sign Up
         </Button>
