@@ -159,6 +159,22 @@ class Client extends Evt {
       this.checkError(e);
     }
   }
+
+  async like(data) {
+    try {
+      await axios.post("/like", data);
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
+  async dislike(data) {
+    try {
+      await axios.post("/dislike", data);
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
 }
 
 export default Client;

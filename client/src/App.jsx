@@ -30,8 +30,6 @@ const theme = createTheme({
   },
 });
 
-const pathsWithoutNavAndPlayer = ["/login", "/register"];
-
 const App = () => {
   const [openLoginDialog, setOpenLoginDialog] = useState(false);
   const [openRegisterDialog, setOpenRegisterDialog] = useState(false);
@@ -41,14 +39,12 @@ const App = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const onLogin = ({ success, userDetails }) => {
-      if (success) {
-        localStorage.setItem("user_id", userDetails.user_id);
-        localStorage.setItem("username", userDetails.username);
-        client.getSpotifyTokens();
-        setOpenLoginDialog(false);
-        navigate(0);
-      }
+    const onLogin = ({ user_id, username }) => {
+      localStorage.setItem("user_id", user_id);
+      localStorage.setItem("username", username);
+      client.getSpotifyTokens();
+      setOpenLoginDialog(false);
+      navigate(0);
     };
     client.on("login", onLogin);
 
@@ -73,13 +69,20 @@ const App = () => {
     const onSpotifyAuthorizationLinkClick = () => {
       setOpenSpotifyAuthDialog(false);
     };
-    client.on("spotify-authorization-link-click");
+    client.on(
+      "spotify-authorization-link-click",
+      onSpotifyAuthorizationLinkClick
+    );
 
     return () => {
       client.un("login", onLogin);
       client.un("require-authentication", onRequireAuthentication);
       client.un("login-link-click", onRequireAuthentication);
       client.un("register-link-click", onRegisterLinkClick);
+      client.un(
+        "spotify-authorization-link-click",
+        onSpotifyAuthorizationLinkClick
+      );
     };
   }, []);
 
@@ -103,13 +106,15 @@ const App = () => {
             onClose={() => setOpenSpotifyAuthDialog(false)}
             PaperComponent={SpotifyAuthorization}
           />
-          {!pathsWithoutNavAndPlayer.includes(location.pathname) && <NavBar />}
-          <Routes>
-            <Route path="/" exact element={<Dashboard />} />
-            <Route path="/post" element={<CreatePost />} />
-            <Route path="/post/:post_id" element={<Post />} />
-          </Routes>
-          {!pathsWithoutNavAndPlayer.includes(location.pathname) && <Player />}
+          <NavBar />
+          <div style={{ paddingBottom: "80px" }}>
+            <Routes>
+              <Route path="/" exact element={<Dashboard />} />
+              <Route path="/post" element={<CreatePost />} />
+              <Route path="/post/:post_id" element={<Post />} />
+            </Routes>
+          </div>
+          <Player />
         </ThemeProvider>
       </ClientProvider>
     </div>

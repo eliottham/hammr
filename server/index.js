@@ -459,6 +459,62 @@ app.delete(
   })
 );
 
+app.post(
+  "/like",
+  useAuth(async (req, res, user) => {
+    const { post, comment } = req.body;
+    try {
+      if (post) {
+        await user.updateOne({
+          $push: { liked_posts: new ObjectId(post._id) },
+        });
+        await Post.findByIdAndUpdate(post._id, {
+          $push: { liked_users: user._id },
+        });
+      } else if (comment) {
+        await user.updateOne({
+          $push: { liked_comments: new ObjectId(comment._id) },
+        });
+        await Comment.findByIdAndUpdate(comment._id, {
+          $push: { liked_users: user._id },
+        });
+      }
+      res.sendStatus(200);
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
+
+app.post(
+  "/dislike",
+  useAuth(async (req, res, user) => {
+    const { post, comment } = req.body;
+    try {
+      if (post) {
+        await user.updateOne({
+          $pull: { liked_posts: new ObjectId(post._id) },
+        });
+        await Post.findByIdAndUpdate(post._id, {
+          $pull: { liked_users: user._id },
+        });
+      } else if (comment) {
+        await user.updateOne({
+          $pull: { liked_comments: new ObjectId(comment._id) },
+        });
+        await Comment.findByIdAndUpdate(comment._id, {
+          $pull: { liked_users: user._id },
+        });
+      }
+      res.sendStatus(200);
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
+
 app.listen(1337, () => {
   console.log("Server started on 1337");
 });

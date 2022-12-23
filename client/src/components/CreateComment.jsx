@@ -5,7 +5,7 @@ import InputLabel from "@mui/material/InputLabel";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import Track from "./Track";
+import TrackListItem from "./TrackListItem";
 import SearchBar from "./SearchBar";
 
 import ClientContext from "../contexts/client_context";
@@ -49,7 +49,7 @@ function CreateComment({ post_id }) {
               Track
             </InputLabel>
             <List sx={{ margin: "5px 0 -10px 0" }}>
-              <Track
+              <TrackListItem
                 track={spotifyTrack}
                 style={{
                   border: "1px solid rgb(82, 82, 82)",

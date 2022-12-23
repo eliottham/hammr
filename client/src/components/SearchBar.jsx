@@ -2,7 +2,7 @@ import React, { useCallback, useState, useContext } from "react";
 import { TextField, Divider, List } from "@mui/material";
 import _debounce from "lodash/debounce";
 import ClientContext from "../contexts/client_context";
-import Track from "./Track";
+import TrackListItem from "./TrackListItem";
 import Stack from "@mui/material/Stack";
 
 function SearchBar({
@@ -101,7 +101,7 @@ function SearchBar({
         {tracks.map((track, i) => {
           return (
             <React.Fragment key={track.id}>
-              <Track
+              <TrackListItem
                 track={track}
                 mouseOver={handleMouseOver}
                 onClick={handleTrackOnClick}

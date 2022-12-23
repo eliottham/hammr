@@ -9,7 +9,7 @@ import List from "@mui/material/List";
 import Stack from "@mui/material/Stack";
 import Slider from "@mui/material/Slider";
 import VolumeUp from "@mui/icons-material/VolumeUp";
-import Track from "./Track";
+import TrackListItem from "./TrackListItem";
 import _debounce from "lodash/debounce";
 import ClientContext from "../contexts/client_context";
 
@@ -81,6 +81,20 @@ function Player() {
             });
           }
         );
+        // TODO: Add detailed error message to user
+        // https://developer.spotify.com/documentation/web-playback-sdk/reference/#error-reference
+        client.spotifyPlayer.on("initialization_error", ({ message }) => {
+          console.error("Failed to initialize", message);
+        });
+        client.spotifyPlayer.on("authentication_error", ({ message }) => {
+          console.error("Failed to authenticate", message);
+        });
+        client.spotifyPlayer.on("account_error", ({ message }) => {
+          console.error("Failed to validate Spotify account", message);
+        });
+        client.spotifyPlayer.on("playback_error", ({ message }) => {
+          console.error("Failed to perform playback", message);
+        });
         client.spotifyPlayer.connect();
       };
     };
@@ -147,18 +161,19 @@ function Player() {
         backgroundColor: "#181818",
         borderTop: "1px solid #282828",
         right: 0,
+        height: "80px",
       }}
       container
       alignItems="center"
     >
       <Grid item xs={3}>
-        <List>
-          <Track track={track} style={{}} />
+        <List disablePadding>
+          <TrackListItem track={track} style={{}} />
         </List>
       </Grid>
       <Grid item xs={6}>
         <Stack direction="column">
-          <Stack direction="row" sx={{ margin: "auto" }}>
+          <Stack direction="row" sx={{ margin: "0 auto 0 auto" }}>
             <IconButton>
               <SkipPreviousIcon fontSize="large" />
             </IconButton>
@@ -173,12 +188,17 @@ function Player() {
               <SkipNextIcon fontSize="large" />
             </IconButton>
           </Stack>
-          <Stack direction="row" alignItems="center" justifyContent="center">
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="center"
+            sx={{ width: "100%", margin: "-10px 0 10px 0" }}
+          >
             {trackPosition !== 0 && trackDuration !== 0 && (
               <span>{msToMinSec(trackPosition)}</span>
             )}
             <Slider
-              sx={{ width: "50%", margin: "0 10px 0 10px" }}
+              sx={{ width: "50%", margin: "0px 10px 0 10px" }}
               size="small"
               value={trackPosition}
               min={0}

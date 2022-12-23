@@ -4,7 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import SearchBar from "./SearchBar";
 import Grid from "@mui/material/Grid";
-import Track from "./Track";
+import TrackListItem from "./TrackListItem";
 import List from "@mui/material/List";
 import InputLabel from "@mui/material/InputLabel";
 import Button from "@mui/material/Button";
@@ -82,7 +82,7 @@ function CreatePost() {
                 Track
               </InputLabel>
               <List sx={{ margin: "5px 0 -10px 0" }}>
-                <Track
+                <TrackListItem
                   track={spotifyTrack}
                   style={{
                     border: "1px solid rgb(82, 82, 82)",

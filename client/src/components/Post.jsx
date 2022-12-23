@@ -5,13 +5,14 @@ import { styled } from "@mui/material/styles";
 import { useParams, useNavigate } from "react-router-dom";
 import ClientContext from "../contexts/client_context";
 import CreateComment from "./CreateComment";
-import PostCommentTrack from "./PostCommentTrack";
+import Track from "./Track";
 import Comment from "./Comment";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
+import LikeButton from "./LikeButton";
 
 function Post() {
   const client = useContext(ClientContext);
@@ -50,8 +51,12 @@ function Post() {
     <Box sx={{ margin: "5px 0 5px 0" }}>
       <Stack spacing={1}>
         <Item>
-          <h2>{post.title}</h2>
-          <PostCommentTrack track={post.spotifyTrack} />
+          <Stack direction="row">
+            <LikeButton post={post} size="large" />
+            <h2>{post.title}</h2>
+          </Stack>
+
+          <Track track={post.spotifyTrack} />
           <p>{post.description}</p>
           {localStorage.getItem("user_id") === post.author && (
             <Stack direction="row">
@@ -78,7 +83,9 @@ function Post() {
               return (
                 <Box key={comment._id} sx={sx}>
                   <Comment {...comment} />
-                  {i < post.comments.length - 1 ? <Divider /> : null}
+                  {i < post.comments.length - 1 ? (
+                    <Divider sx={{ marginBottom: "15px" }} />
+                  ) : null}
                 </Box>
               );
             })}

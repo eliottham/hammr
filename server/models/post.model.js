@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
-const User = require("./user.model.js");
 
 const schema = new mongoose.Schema(
   {
@@ -9,19 +8,20 @@ const schema = new mongoose.Schema(
     spotifyTrack: { type: Object },
     description: { type: String },
     comments: [{ type: ObjectId, ref: "Comment" }],
+    liked_users: [{ type: ObjectId, ref: "User" }],
     timestamp: { type: Date, default: Date.now },
   },
   { collection: "posts" }
 );
 
 schema.post("save", async (doc) => {
-  await User.findByIdAndUpdate(doc.author, {
+  await mongoose.model("User").findByIdAndUpdate(doc.author, {
     $push: { posts: doc._id },
   });
 });
 
 schema.post("deleteOne", { document: true }, async (doc) => {
-  await User.findByIdAndUpdate(doc.author, {
+  await mongoose.model("User").findByIdAndUpdate(doc.author, {
     $pull: { posts: doc._id, comments: { $in: doc.comments } },
   });
   if (doc.comments) {

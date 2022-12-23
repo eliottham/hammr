@@ -12,6 +12,8 @@ const User = mongoose.model(
       spotifyRefreshToken: { type: String },
       posts: [{ type: ObjectId, ref: "Post" }],
       comments: [{ type: ObjectId, ref: "Comment" }],
+      liked_posts: [{ type: ObjectId, ref: "Post" }],
+      liked_comments: [{ type: ObjectId, ref: "Comment" }],
       timestamp: { type: Date, default: Date.now },
     },
     { collection: "users" }
