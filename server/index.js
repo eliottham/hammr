@@ -441,6 +441,42 @@ app.post(
   })
 );
 
+app.put(
+  "/comment",
+  useAuth(async (req, res, user) => {
+    const { originalComment, spotifyTrack, comment } = req.body;
+    try {
+      if (user._id.equals(new ObjectId(originalComment.author._id))) {
+        const data = {
+          timestamp: new Date().toISOString(),
+          edited: true,
+        };
+        if (spotifyTrack?.id !== originalComment.spotifyTrack?.id) {
+          data.spotifyTrack = spotifyTrack;
+        }
+        if (comment !== originalComment.comment) {
+          data.comment = comment;
+        }
+        if (data.spotifyTrack || data.comment) {
+          const newComment = await Comment.findByIdAndUpdate(
+            originalComment._id,
+            data,
+            { new: true } // return updated doc
+          ).populate("author");
+          res.status(200).json(newComment);
+        } else {
+          res.status(200).json(originalComment);
+        }
+      } else {
+        res.status(403).send("You are not authorized to edit this comment");
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
+
 app.delete(
   "/comment/:comment_id",
   useAuth(async (req, res, user) => {
@@ -448,9 +484,11 @@ app.delete(
       const comment = await Comment.findById(
         new ObjectId(req.params.comment_id)
       );
-      if (comment.author.equals(user._id)) {
+      if (user._id.equals(comment.author)) {
         const deletedComment = await comment.deleteOne();
         res.status(200).json(deletedComment);
+      } else {
+        res.status(403).send("You are not authorized to delete this comment");
       }
     } catch (err) {
       console.log(err);

@@ -29,42 +29,42 @@ function CreateComment({ post_id }) {
         <Typography variant="caption">Comment as {username}</Typography>
       )}
       <Grid alignItems="stretch" container spacing={1} direction="column">
-        {!spotifyTrack && (
-          <Grid item>
+        <Grid item>
+          {!spotifyTrack && (
             <SearchBar
               label="Track"
               placeholder="Search Track"
               customHandleTrackOnClick={handleTrackOnClick}
               initialQuery={lastQuery}
             />
-          </Grid>
-        )}
-        {spotifyTrack && (
-          <Grid item>
-            <InputLabel
-              shrink
-              size="small"
-              sx={{ margin: "22px 0px -20px 14px" }}
-            >
-              Track
-            </InputLabel>
-            <List sx={{ margin: "5px 0 -10px 0" }}>
-              <TrackListItem
-                track={spotifyTrack}
-                style={{
-                  border: "1px solid rgb(82, 82, 82)",
-                  borderRadius: "4px",
-                  "&:hover": {
-                    backgroundColor: "rgba(82, 82, 82, 0.5)",
-                    borderColor: "white",
-                    cursor: "pointer",
-                  },
-                }}
-                onClick={() => setSpotifyTrack()}
-              />
-            </List>
-          </Grid>
-        )}
+          )}
+          {spotifyTrack && (
+            <>
+              <InputLabel
+                shrink
+                size="small"
+                sx={{ margin: "0px 0px -9px 14px" }}
+              >
+                Track
+              </InputLabel>
+              <List disablePadding>
+                <TrackListItem
+                  track={spotifyTrack}
+                  style={{
+                    border: "1px solid rgb(82, 82, 82)",
+                    borderRadius: "4px",
+                    "&:hover": {
+                      backgroundColor: "rgba(82, 82, 82, 0.5)",
+                      borderColor: "white",
+                      cursor: "pointer",
+                    },
+                  }}
+                  onClick={() => setSpotifyTrack()}
+                />
+              </List>
+            </>
+          )}
+        </Grid>
         <Grid item>
           <TextField
             fullWidth

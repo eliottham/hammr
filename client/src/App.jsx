@@ -25,6 +25,7 @@ const theme = createTheme({
       // main: '#0070ff'
       // main: "#b38500",
       main: "rgba(56, 82, 56, 1)",
+      grey: "#d6cdcb",
     },
     mode: "dark",
   },

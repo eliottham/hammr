@@ -7,12 +7,14 @@ import ClientContext from "../contexts/client_context";
 import CreateComment from "./CreateComment";
 import Track from "./Track";
 import Comment from "./Comment";
+import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import LikeButton from "./LikeButton";
+import Typography from "@mui/material/Typography";
 
 function Post() {
   const client = useContext(ClientContext);
@@ -41,58 +43,62 @@ function Post() {
 
   const Item = styled(Paper)(({ theme }) => ({
     position: "relative",
-    margin: "5px auto 5px auto !important",
-    padding: "10px 20px 10px 20px",
+    padding: "15px",
     textAlign: "left",
-    width: "50%",
+    width: document.documentElement.clientWidth / 2.5 + "px",
   }));
 
   return (
-    <Box sx={{ margin: "5px 0 5px 0" }}>
-      <Stack spacing={1}>
+    <Grid
+      container
+      direction="column"
+      spacing={1}
+      justifyContent="space-around"
+      alignItems="center"
+      sx={{ marginTop: "0px", marginBottom: "5px" }}
+    >
+      <Grid item>
         <Item>
-          <Stack direction="row">
-            <LikeButton post={post} size="large" />
-            <h2>{post.title}</h2>
-          </Stack>
-
-          <Track track={post.spotifyTrack} />
-          <p>{post.description}</p>
-          {localStorage.getItem("user_id") === post.author && (
-            <Stack direction="row">
-              <Tooltip title="Delete Post">
-                <IconButton onClick={() => client.deletePost(post_id)}>
-                  <DeleteOutlineIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          )}
+          <Grid container alignItems="center">
+            <Grid item xs={1}>
+              <LikeButton post={post} />
+            </Grid>
+            <Grid item container direction="column" xs={11} spacing={2}>
+              <Grid item>
+                <Typography variant="h4">{post.title}</Typography>
+              </Grid>
+              <Grid item>
+                <Track track={post.spotifyTrack} />
+              </Grid>
+              <Grid item>
+                <Typography variant="body1">{post.description}</Typography>
+              </Grid>
+            </Grid>
+          </Grid>
         </Item>
+      </Grid>
+      <Grid item>
         <Item>
           <CreateComment post_id={post_id} />
         </Item>
-        {post.comments && (
+      </Grid>
+      {post.comments && (
+        <Grid item>
           <Item>
             {post.comments.map((comment, i) => {
-              let sx = { margin: "5px 0 5px 0" };
-              if (i === 0) {
-                sx = { margin: "0 0 5px 0" };
-              } else if (i === post.comments.length - 1) {
-                sx = { margin: "5px 0 0 0" };
-              }
               return (
-                <Box key={comment._id} sx={sx}>
-                  <Comment {...comment} />
+                <Box key={comment._id}>
+                  <Comment comment={comment} />
                   {i < post.comments.length - 1 ? (
-                    <Divider sx={{ marginBottom: "15px" }} />
+                    <Divider sx={{ margin: "5px 0 15px 0" }} />
                   ) : null}
                 </Box>
               );
             })}
           </Item>
-        )}
-      </Stack>
-    </Box>
+        </Grid>
+      )}
+    </Grid>
   );
 }
 

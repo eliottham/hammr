@@ -1,5 +1,4 @@
 import React, { useState, useContext, useEffect } from "react";
-import Stack from "@mui/material/Stack";
 import ClientContext from "../contexts/client_context";
 import Grid from "@mui/material/Grid";
 import List from "@mui/material/List";
@@ -20,18 +19,20 @@ function Track({ track }) {
   );
 
   useEffect(() => {
+    const colorThief = new window.ColorThief();
+    let trackImg;
+    const onTrackImgLoad = () => {
+      setTrackImgColor(colorThief.getColor(trackImg));
+    };
     if (track) {
-      const colorThief = new window.ColorThief();
-      const trackImg = document.createElement("img");
+      trackImg = document.createElement("img");
       trackImg.setAttribute("hidden", true);
       trackImg.setAttribute("src", track.album.images[2].url);
       trackImg.setAttribute("crossorigin", "anonymous");
       if (trackImg.complete) {
         setTrackImgColor(colorThief.getColor(trackImg));
       } else {
-        trackImg.addEventListener("load", () => {
-          setTrackImgColor(colorThief.getColor(trackImg));
-        });
+        trackImg.addEventListener("load", onTrackImgLoad);
       }
     }
 
@@ -56,6 +57,9 @@ function Track({ track }) {
     client.on("spotify-player-state-changed", onSpotifyPlayerStateChanged);
     return () => {
       client.un("spotify-player-state-changed", onSpotifyPlayerStateChanged);
+      if (trackImg) {
+        trackImg.removeEventListener("load", onTrackImgLoad);
+      }
     };
   }, []);
 
@@ -79,6 +83,7 @@ function Track({ track }) {
         borderRadius: "0.75rem",
         width: "572px",
         height: "160px",
+        boxShadow: "-5px 5px 5px rgba(0, 0, 0, 0.35)",
       }}
     >
       <Grid
@@ -124,31 +129,6 @@ function Track({ track }) {
         </IconButton>
       </Grid>
     </Grid>
-    // <Stack
-    //   direction="row"
-    //   spacing={0}
-    //   sx={{
-    //     // backgroundColor: "rgba(82, 82, 82, 0.5)",
-    //     backgroundColor: theme.palette.primary.main,
-    //     borderRadius: "10px",
-    //     width: "fit-content",
-    //   }}
-    // >
-    //   <IconButton
-    //     onClick={handlePlayTrackClick}
-    //     style={{ margin: "auto -15px auto 0px" }}
-    //   >
-    //     {trackPlaying ? (
-    //       <PauseIcon fontSize="large" />
-    //     ) : (
-    //       <PlayArrowIcon fontSize="large" />
-    //     )}
-    //   </IconButton>
-    //   <Track track={track} />
-    //   {/* <List>
-    //     <TrackListItem track={track} style={{}} />
-    //   </List> */}
-    // </Stack>
   );
 }
 

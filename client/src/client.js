@@ -149,6 +149,15 @@ class Client extends Evt {
     }
   }
 
+  async editComment(data) {
+    try {
+      const response = await axios.put("/comment", data);
+      this.fire("edit-comment", response.data);
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
   async deleteComment(comment_id) {
     try {
       const response = await axios.delete(`/comment/${comment_id}`);

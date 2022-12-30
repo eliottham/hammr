@@ -1,62 +1,152 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import Stack from "@mui/material/Stack";
 import Avatar from "@mui/material/Avatar";
 import { useTheme } from "@mui/material/styles";
 import Track from "./Track";
 import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 import Util from "../util.js";
 import IconButton from "@mui/material/IconButton";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Tooltip from "@mui/material/Tooltip";
 import ClientContext from "../contexts/client_context";
+import LikeButton from "./LikeButton";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import Box from "@mui/material/Box";
+import EditComment from "./EditComment";
 
-function Comment({ _id, author, comment, spotifyTrack, timestamp }) {
+function Comment({ comment }) {
   const client = useContext(ClientContext);
-  const theme = useTheme();
+  const [thisComment, setThisComment] = useState(comment);
+  const [edit, setEdit] = useState(false);
+
+  useEffect(() => {
+    const onEditComment = (responseComment) => {
+      if (responseComment._id === thisComment._id) {
+        setThisComment(responseComment);
+        setEdit(false);
+      }
+    };
+    client.on("edit-comment", onEditComment);
+
+    return () => {
+      client.un("edit-comment", onEditComment);
+    };
+  }, []);
 
   function formatTimeStamp(ts) {
     const { unit, value } = Util.getTimeFromNow(ts);
-    return value + " " + unit + " ago";
+    return value ? value + " " + unit + " ago" : "a moment ago";
   }
 
-  return (
-    <>
+  function handleEditButtonClick() {
+    setEdit(!edit);
+  }
+
+  if (edit) {
+    return (
       <Stack
         direction="row"
-        alignItems="center"
+        alignItems="flex-start"
         justifyContent="flex-start"
         spacing={1}
       >
         <Avatar
           sx={{ width: 24, height: 24 }}
           variant="circle"
-          src={author.avatar}
+          src={thisComment.author.avatar}
         />
-        <Typography variant="caption">
-          {author.username} - {formatTimeStamp(timestamp)}
-        </Typography>
+        <Stack direction="column" spacing={1} sx={{ width: "90%" }}>
+          <Typography variant="caption" sx={{ display: "flex" }}>
+            {thisComment.author.username} -
+            {thisComment.edited ? (
+              <Box sx={{ fontStyle: "italic" }}>
+                &nbsp;edited {formatTimeStamp(thisComment.timestamp)}
+              </Box>
+            ) : (
+              <Box sx={{ fontStyle: "default" }}>
+                &nbsp;{formatTimeStamp(thisComment.timestamp)}
+              </Box>
+            )}
+          </Typography>
+          <EditComment
+            originalComment={thisComment}
+            cancelEditFunction={() => setEdit(false)}
+          />
+          <Stack direction="row" alignItems="center">
+            <LikeButton comment={thisComment} />
+            {localStorage.getItem("user_id") === thisComment.author._id && (
+              <Box sx={{ marginLeft: "8px" }}>
+                <Tooltip title="Edit Comment">
+                  <IconButton onClick={handleEditButtonClick}>
+                    <EditOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Delete Comment">
+                  <IconButton
+                    onClick={() => client.deleteComment(thisComment._id)}
+                  >
+                    <DeleteOutlineIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            )}
+          </Stack>
+        </Stack>
       </Stack>
-      {spotifyTrack && (
-        <Stack direction="row">
-          <Box sx={{ margin: "5px 0 10px 32px" }}>
-            {spotifyTrack && <Track track={spotifyTrack} />}
-            <Box sx={{ marginTop: "10px" }}>{comment}</Box>
-          </Box>
+    );
+  } else {
+    return (
+      <Stack
+        direction="row"
+        alignItems="flex-start"
+        justifyContent="flex-start"
+        spacing={1}
+      >
+        <Avatar
+          sx={{ width: 24, height: 24 }}
+          variant="circle"
+          src={thisComment.author.avatar}
+        />
+        <Stack direction="column" spacing={1}>
+          <Typography variant="caption" sx={{ display: "flex" }}>
+            {thisComment.author.username} -
+            {thisComment.edited ? (
+              <Box sx={{ fontStyle: "italic" }}>
+                &nbsp;edited {formatTimeStamp(thisComment.timestamp)}
+              </Box>
+            ) : (
+              <Box sx={{ fontStyle: "default" }}>
+                &nbsp;{formatTimeStamp(thisComment.timestamp)}
+              </Box>
+            )}
+          </Typography>
+          {thisComment.spotifyTrack && (
+            <Track track={thisComment.spotifyTrack} />
+          )}
+          <Typography variant="body1">{thisComment.comment}</Typography>
+          <Stack direction="row" alignItems="center">
+            <LikeButton comment={thisComment} />
+            {localStorage.getItem("user_id") === thisComment.author._id && (
+              <Box sx={{ marginLeft: "8px" }}>
+                <Tooltip title="Edit Comment">
+                  <IconButton onClick={handleEditButtonClick}>
+                    <EditOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Delete Comment">
+                  <IconButton
+                    onClick={() => client.deleteComment(thisComment._id)}
+                  >
+                    <DeleteOutlineIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            )}
+          </Stack>
         </Stack>
-      )}
-      {!spotifyTrack && <Box sx={{ margin: "0 0 10px 32px" }}>{comment}</Box>}
-      {localStorage.getItem("user_id") === author._id && (
-        <Stack direction="row">
-          <Tooltip title="Delete Comment">
-            <IconButton onClick={() => client.deleteComment(_id)}>
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      )}
-    </>
-  );
+      </Stack>
+    );
+  }
 }
 
 export default Comment;
