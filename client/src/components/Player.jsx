@@ -9,7 +9,7 @@ import List from "@mui/material/List";
 import Stack from "@mui/material/Stack";
 import Slider from "@mui/material/Slider";
 import VolumeUp from "@mui/icons-material/VolumeUp";
-import TrackListItem from "./TrackListItem";
+import TrackListItem from "./Track/TrackListItem";
 import _debounce from "lodash/debounce";
 import ClientContext from "../contexts/client_context";
 

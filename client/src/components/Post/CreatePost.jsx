@@ -1,21 +1,19 @@
-import React, { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect } from "react";
 import Paper from "@mui/material/Paper";
-import { useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
-import SearchBar from "./SearchBar";
+import SearchBar from "../SearchBar";
 import Grid from "@mui/material/Grid";
-import TrackListItem from "./TrackListItem";
+import TrackListItem from "../Track/TrackListItem";
 import List from "@mui/material/List";
 import InputLabel from "@mui/material/InputLabel";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 
-import ClientContext from "../contexts/client_context";
+import ClientContext from "../../contexts/client_context";
 
 function CreatePost() {
   const client = useContext(ClientContext);
   const navigate = useNavigate();
-  const theme = useTheme();
 
   const [title, setTitle] = useState("");
   const [spotifyTrack, setSpotifyTrack] = useState();
@@ -39,7 +37,7 @@ function CreatePost() {
   }
 
   return (
-    <React.Fragment>
+    <>
       <h2 style={{ width: "50%", margin: "30px auto 0px auto" }}>
         Create Post
       </h2>
@@ -122,7 +120,7 @@ function CreatePost() {
           </Grid>
         </Grid>
       </Paper>
-    </React.Fragment>
+    </>
   );
 }
 

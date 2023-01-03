@@ -1,15 +1,14 @@
-import React, { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import Stack from "@mui/material/Stack";
 import Avatar from "@mui/material/Avatar";
-import { useTheme } from "@mui/material/styles";
-import Track from "./Track";
+import Track from "../Track/Track";
 import Typography from "@mui/material/Typography";
-import Util from "../util.js";
+import Util from "../../util.js";
 import IconButton from "@mui/material/IconButton";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Tooltip from "@mui/material/Tooltip";
-import ClientContext from "../contexts/client_context";
-import LikeButton from "./LikeButton";
+import ClientContext from "../../contexts/client_context";
+import LikeButton from "../LikeButton";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import Box from "@mui/material/Box";
 import EditComment from "./EditComment";
@@ -127,20 +126,23 @@ function Comment({ comment }) {
           <Stack direction="row" alignItems="center">
             <LikeButton comment={thisComment} />
             {localStorage.getItem("user_id") === thisComment.author._id && (
-              <Box sx={{ marginLeft: "8px" }}>
+              <>
                 <Tooltip title="Edit Comment">
-                  <IconButton onClick={handleEditButtonClick}>
+                  <IconButton onClick={handleEditButtonClick} edge="start">
                     <EditOutlinedIcon fontSize="small" />
+                    <Typography variant="button">&nbsp;Edit</Typography>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Delete Comment">
                   <IconButton
+                    edge="start"
                     onClick={() => client.deleteComment(thisComment._id)}
                   >
                     <DeleteOutlineIcon fontSize="small" />
+                    <Typography variant="button">&nbsp;Delete</Typography>
                   </IconButton>
                 </Tooltip>
-              </Box>
+              </>
             )}
           </Stack>
         </Stack>

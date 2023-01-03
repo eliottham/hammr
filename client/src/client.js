@@ -138,6 +138,16 @@ class Client extends Evt {
     }
   }
 
+  // TODO: Add search parameters to have feed curated to user
+  async getPosts() {
+    try {
+      const response = await axios.get("/posts");
+      this.fire("get-posts", response.data);
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
   async createComment(data) {
     try {
       const response = await axios.post("/comment", data);
@@ -171,7 +181,8 @@ class Client extends Evt {
 
   async like(data) {
     try {
-      await axios.post("/like", data);
+      const response = await axios.post("/like", data);
+      return response;
     } catch (e) {
       this.checkError(e);
     }
@@ -179,7 +190,8 @@ class Client extends Evt {
 
   async dislike(data) {
     try {
-      await axios.post("/dislike", data);
+      const response = await axios.post("/dislike", data);
+      return response;
     } catch (e) {
       this.checkError(e);
     }

@@ -7,12 +7,7 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 
-function LikeButton({
-  post,
-  comment,
-  size = "small",
-  countLocation = "right",
-}) {
+function LikeButton({ post, comment }) {
   const client = useContext(ClientContext);
 
   const [liked, setLiked] = useState(false);
@@ -28,15 +23,19 @@ function LikeButton({
     }
   }, []);
 
-  function handleOnClick() {
+  async function handleOnClick() {
     if (liked) {
-      client.dislike({ post, comment });
-      setLiked(false);
-      setLikeCount(likeCount - 1);
+      const result = await client.dislike({ post, comment });
+      if (result?.status === 200) {
+        setLiked(false);
+        setLikeCount(likeCount - 1);
+      }
     } else {
-      client.like({ post, comment });
-      setLiked(true);
-      setLikeCount(likeCount + 1);
+      const result = await client.like({ post, comment });
+      if (result?.status === 200) {
+        setLiked(true);
+        setLikeCount(likeCount + 1);
+      }
     }
   }
 
@@ -58,12 +57,12 @@ function LikeButton({
     return (
       <Stack direction="row" alignItems="center">
         <Tooltip title={liked ? "Dislike" : "Like"}>
-          <IconButton onClick={handleOnClick}>
+          <IconButton onClick={handleOnClick} edge="start">
             {liked && <ThumbUpAltIcon fontSize={"small"} />}
             {!liked && <ThumbUpOffAltIcon fontSize={"small"} />}
+            <Typography variant="button">&nbsp;{likeCount}</Typography>
           </IconButton>
         </Tooltip>
-        <Typography variant="body1">{likeCount}</Typography>
       </Stack>
     );
   }

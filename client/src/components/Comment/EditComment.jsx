@@ -4,11 +4,10 @@ import List from "@mui/material/List";
 import InputLabel from "@mui/material/InputLabel";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
-import TrackListItem from "./TrackListItem";
-import SearchBar from "./SearchBar";
+import TrackListItem from "../Track/TrackListItem";
+import SearchBar from "../SearchBar";
 
-import ClientContext from "../contexts/client_context";
+import ClientContext from "../../contexts/client_context";
 
 function EditComment({ originalComment, cancelEditFunction }) {
   const client = useContext(ClientContext);

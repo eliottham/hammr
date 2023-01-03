@@ -1,19 +1,15 @@
-import React, { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect } from "react";
 import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
 import { styled } from "@mui/material/styles";
 import { useParams, useNavigate } from "react-router-dom";
-import ClientContext from "../contexts/client_context";
-import CreateComment from "./CreateComment";
-import Track from "./Track";
-import Comment from "./Comment";
+import ClientContext from "../../contexts/client_context";
+import CreateComment from "../Comment/CreateComment";
+import Track from "../Track/Track";
+import Comment from "../Comment/Comment";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import Tooltip from "@mui/material/Tooltip";
-import IconButton from "@mui/material/IconButton";
-import LikeButton from "./LikeButton";
+import LikeButton from "../LikeButton";
 import Typography from "@mui/material/Typography";
 
 function Post() {
@@ -45,6 +41,7 @@ function Post() {
     position: "relative",
     padding: "15px",
     textAlign: "left",
+    borderRadius: "0.75rem",
     width: document.documentElement.clientWidth / 2.5 + "px",
   }));
 
@@ -53,26 +50,29 @@ function Post() {
       container
       direction="column"
       spacing={1}
-      justifyContent="space-around"
       alignItems="center"
       sx={{ marginTop: "0px", marginBottom: "5px" }}
     >
       <Grid item>
         <Item>
-          <Grid container alignItems="center">
-            <Grid item xs={1}>
+          <Grid container>
+            <Grid item xs={1} sx={{ marginTop: "100px" }}>
               <LikeButton post={post} />
             </Grid>
             <Grid item container direction="column" xs={11} spacing={2}>
               <Grid item>
-                <Typography variant="h4">{post.title}</Typography>
+                <Typography variant="h5">{post.title}</Typography>
               </Grid>
-              <Grid item>
-                <Track track={post.spotifyTrack} />
-              </Grid>
-              <Grid item>
-                <Typography variant="body1">{post.description}</Typography>
-              </Grid>
+              {post.spotifyTrack && (
+                <Grid item>
+                  <Track track={post.spotifyTrack} />
+                </Grid>
+              )}
+              {post.description && (
+                <Grid item>
+                  <Typography variant="body1">{post.description}</Typography>
+                </Grid>
+              )}
             </Grid>
           </Grid>
         </Item>

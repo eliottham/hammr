@@ -6,12 +6,11 @@ import {
   TextField,
   Button,
   Typography,
-  Link,
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import ClientContext from "../contexts/client_context";
+import ClientContext from "../../contexts/client_context";
 
 function Login() {
   const client = useContext(ClientContext);

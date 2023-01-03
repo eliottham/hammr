@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { CssBaseline, Dialog } from "@mui/material";
 
@@ -7,14 +7,14 @@ import { ClientProvider } from "./contexts/client_context";
 
 import Client from "./client";
 
-import Login from "./components/Login";
-import Register from "./components/Register";
+import Login from "./components/Dialog/Login";
+import Register from "./components/Dialog/Register";
 import Dashboard from "./components/Dashboard";
 import Player from "./components/Player";
 import NavBar from "./components/NavBar";
-import CreatePost from "./components/CreatePost";
-import Post from "./components/Post";
-import SpotifyAuthorization from "./components/SpotifyAuhorization";
+import CreatePost from "./components/Post/CreatePost";
+import Post from "./components/Post/Post";
+import SpotifyAuthorization from "./components/Dialog/SpotifyAuhorization";
 
 const client = new Client();
 
@@ -37,7 +37,6 @@ const App = () => {
   const [openSpotifyAuthDialog, setOpenSpotifyAuthDialog] = useState(false);
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const onLogin = ({ user_id, username }) => {
@@ -96,16 +95,19 @@ const App = () => {
             open={openLoginDialog}
             onClose={() => setOpenLoginDialog(false)}
             PaperComponent={Login}
+            disableScrollLock
           />
           <Dialog
             open={openRegisterDialog}
             onClose={() => setOpenLoginDialog(false)}
             PaperComponent={Register}
+            disableScrollLock
           />
           <Dialog
             open={openSpotifyAuthDialog}
             onClose={() => setOpenSpotifyAuthDialog(false)}
             PaperComponent={SpotifyAuthorization}
+            disableScrollLock
           />
           <NavBar />
           <div style={{ paddingBottom: "80px" }}>

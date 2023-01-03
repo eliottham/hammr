@@ -1,5 +1,4 @@
 import { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Grid,
   Paper,
@@ -7,15 +6,13 @@ import {
   TextField,
   Button,
   Typography,
-  Link,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import ClientContext from "../contexts/client_context";
+import ClientContext from "../../contexts/client_context";
 
 function Register() {
   const client = useContext(ClientContext);
   const theme = useTheme();
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

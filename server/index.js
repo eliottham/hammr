@@ -410,6 +410,16 @@ app.get("/post/:post_id", async (req, res) => {
   }
 });
 
+app.get("/posts", async (req, res) => {
+  try {
+    const posts = await Post.find({}).lean().populate("author");
+    res.status(200).json(posts);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
 app.post(
   "/comment",
   useAuth(async (req, res, user) => {

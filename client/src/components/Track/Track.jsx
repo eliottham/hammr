@@ -1,7 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
-import ClientContext from "../contexts/client_context";
+import ClientContext from "../../contexts/client_context";
 import Grid from "@mui/material/Grid";
-import List from "@mui/material/List";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import IconButton from "@mui/material/IconButton";
@@ -63,7 +62,7 @@ function Track({ track }) {
     };
   }, []);
 
-  function handlePlayTrackClick() {
+  function handlePlayTrackClick(e) {
     if (restartTrack) {
       client.spotifyPlayTrack(track, client.spotifyDeviceId);
     } else if (trackPlaying) {

@@ -2,7 +2,7 @@ import React, { useCallback, useState, useContext } from "react";
 import { TextField, Divider, List } from "@mui/material";
 import _debounce from "lodash/debounce";
 import ClientContext from "../contexts/client_context";
-import TrackListItem from "./TrackListItem";
+import TrackListItem from "./Track/TrackListItem";
 import Stack from "@mui/material/Stack";
 
 function SearchBar({

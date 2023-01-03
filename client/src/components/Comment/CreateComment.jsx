@@ -5,10 +5,10 @@ import InputLabel from "@mui/material/InputLabel";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import TrackListItem from "./TrackListItem";
-import SearchBar from "./SearchBar";
+import TrackListItem from "../Track/TrackListItem";
+import SearchBar from "../SearchBar";
 
-import ClientContext from "../contexts/client_context";
+import ClientContext from "../../contexts/client_context";
 
 function CreateComment({ post_id }) {
   const client = useContext(ClientContext);

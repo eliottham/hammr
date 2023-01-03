@@ -1,21 +1,9 @@
-import { useState, useEffect, useContext } from "react";
-import {
-  Grid,
-  Paper,
-  Avatar,
-  TextField,
-  Button,
-  Typography,
-  Link,
-  Checkbox,
-  FormControlLabel,
-} from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import ClientContext from "../contexts/client_context";
+import { useContext } from "react";
+import { Grid, Paper, Button } from "@mui/material";
+import ClientContext from "../../contexts/client_context";
 
 function SpotifyAuthorization() {
   const client = useContext(ClientContext);
-  const theme = useTheme();
 
   return (
     <Grid>
