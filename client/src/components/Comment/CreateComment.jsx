@@ -16,7 +16,7 @@ function CreateComment({ post_id }) {
   const [spotifyTrack, setSpotifyTrack] = useState();
   const [lastQuery, setLastQuery] = useState("");
   const [comment, setComment] = useState("");
-  const [username, setUsername] = useState(localStorage.getItem("username"));
+  const [username, setUsername] = useState(client.user.username);
 
   function handleTrackOnClick(t) {
     setSpotifyTrack(t);

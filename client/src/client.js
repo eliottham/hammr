@@ -59,7 +59,16 @@ class Client extends Evt {
       const response = await axios.get("/current-user");
       this.fire("get-current-user", response.data);
     } catch (e) {
-      this.fire("get-current-user");
+      this.checkError(e);
+    }
+  }
+
+  async getUser(user_id) {
+    try {
+      const response = await axios.get(`/user/${user_id}`);
+      this.fire("get-user", response.data);
+    } catch (e) {
+      this.checkError(e);
     }
   }
 

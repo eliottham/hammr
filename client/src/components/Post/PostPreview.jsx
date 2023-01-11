@@ -16,6 +16,8 @@ import LikeButton from "../LikeButton";
 import Grid from "@mui/material/Grid";
 import ModeCommentOutlinedIcon from "@mui/icons-material/ModeCommentOutlined";
 import IconButton from "@mui/material/IconButton";
+import UsernameLink from "../User/UsernameLink";
+import Util from "../../util.js";
 
 function PostPreview({ post }) {
   const navigate = useNavigate();
@@ -57,27 +59,27 @@ function PostPreview({ post }) {
           item
           xs={1}
           onClick={(e) => e.stopPropagation()}
-          sx={{ marginTop: "100px", width: "fit-content" }}
+          sx={{ marginTop: "125px", width: "fit-content" }}
         >
           <LikeButton post={post} />
         </Grid>
         <Grid item container direction="column" xs={10} spacing={2}>
           <Grid item>
+            <Typography variant="caption" color="text.secondary">
+              Posted by <UsernameLink author={post.author} />{" "}
+              {Util.getTimeFromNow(post.timestamp)}
+            </Typography>
             <Typography variant="h5">{post.title}</Typography>
           </Grid>
           {post.spotifyTrack && (
-            <Grid
-              item
-              onClick={(e) => e.stopPropagation()}
-              sx={{ width: "fit-content" }}
-            >
+            <Grid item sx={{ width: "fit-content" }}>
               <Track track={post.spotifyTrack} />
             </Grid>
           )}
           {post.description && (
             <Grid item>
               <PostPreviewDescription>
-                <Typography variant="body1" color="text.secondary">
+                <Typography variant="body1" color="white">
                   {post.description}
                 </Typography>
               </PostPreviewDescription>

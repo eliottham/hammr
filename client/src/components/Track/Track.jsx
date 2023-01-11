@@ -18,6 +18,14 @@ function Track({ track }) {
   );
 
   useEffect(() => {
+    if (client && client.spotifyPlayer) {
+      client.spotifyPlayer.getCurrentState().then((state) => {
+        const sameTrack = track?.id === state.track_window.current_track.id;
+        setTrackPlaying(sameTrack);
+        setRestartTrack(!sameTrack);
+      });
+    }
+
     const colorThief = new window.ColorThief();
     let trackImg;
     const onTrackImgLoad = () => {
@@ -63,6 +71,7 @@ function Track({ track }) {
   }, []);
 
   function handlePlayTrackClick(e) {
+    e.stopPropagation();
     if (restartTrack) {
       client.spotifyPlayTrack(track, client.spotifyDeviceId);
     } else if (trackPlaying) {

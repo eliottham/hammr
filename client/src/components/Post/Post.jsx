@@ -11,12 +11,13 @@ import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import LikeButton from "../LikeButton";
 import Typography from "@mui/material/Typography";
+import Util from "../../util.js";
+import UsernameLink from "../User/UsernameLink";
 
 function Post() {
   const client = useContext(ClientContext);
   const navigate = useNavigate();
   const { post_id } = useParams();
-
   const [post, setPost] = useState({});
 
   useEffect(() => {
@@ -56,11 +57,15 @@ function Post() {
       <Grid item>
         <Item>
           <Grid container>
-            <Grid item xs={1} sx={{ marginTop: "100px" }}>
+            <Grid item xs={1} sx={{ marginTop: "125px" }}>
               <LikeButton post={post} />
             </Grid>
             <Grid item container direction="column" xs={11} spacing={2}>
               <Grid item>
+                <Typography variant="caption" color="text.secondary">
+                  Posted by <UsernameLink author={post.author} />{" "}
+                  {Util.getTimeFromNow(post.timestamp)}
+                </Typography>
                 <Typography variant="h5">{post.title}</Typography>
               </Grid>
               {post.spotifyTrack && (

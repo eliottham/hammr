@@ -81,17 +81,17 @@ app.post("/login", async (req, res) => {
     if (user) {
       const token = jwt.sign(
         {
-          id: user._id,
+          _id: user._id,
           email: user.email,
           username: user.username,
         },
         JWT_SECRET,
         {
-          // expiresIn: '72h'
+          expiresIn: "72h",
         }
       );
       res.cookie("token", token, { httpOnly: true });
-      res.status(200).json({ user_id: user._id, username: user.username });
+      res.status(200).json({ _id: user._id, username: user.username });
     } else {
       res.status(401).json({
         error: "Incorrect username or password",
@@ -107,19 +107,12 @@ app.post("/logout", (req, res) => {
   res.end();
 });
 
-app.get(
-  "/current-user",
-  useAuth(async (req, res, user) => {
-    res.status(200).json({ user_id: user._id, username: user.username });
-  })
-);
-
 function useAuth(handler) {
   return async (req, res) => {
     try {
       const token = req.cookies["token"];
       const decoded = jwt.verify(token, JWT_SECRET);
-      const user = await User.findById(new ObjectId(decoded.id));
+      const user = await User.findById(new ObjectId(decoded._id));
       handler(req, res, user);
     } catch (err) {
       res.status(401).send("You must be logged in to continue");
@@ -358,6 +351,38 @@ app.post(
   })
 );
 
+app.get("/current-user", async (req, res) => {
+  try {
+    const currentUser = {
+      _id: null,
+      username: null,
+    };
+    const token = req.cookies["token"];
+    if (token) {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const user = await User.findById(new ObjectId(decoded._id));
+      currentUser._id = user._id;
+      currentUser.username = user.username;
+    }
+    res.status(200).json(currentUser);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+app.get("/user/:user_id", async (req, res) => {
+  try {
+    const user = await User.findById(new ObjectId(req.params.user_id))
+      .lean()
+      .populate("posts")
+      .populate("comments");
+    res.status(200).json(user);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
 app.post(
   "/post",
   useAuth(async (req, res, user) => {
@@ -395,14 +420,15 @@ app.delete(
 
 app.get("/post/:post_id", async (req, res) => {
   try {
-    const post = await Post.findById(new ObjectId(req.params.post_id)).populate(
-      {
+    const post = await Post.findById(new ObjectId(req.params.post_id))
+      .lean()
+      .populate("author")
+      .populate({
         path: "comments",
         populate: {
           path: "author",
         },
-      }
-    );
+      });
     post ? res.status(200).json(post) : res.status(404).send("Post not found");
   } catch (err) {
     console.log(err);

@@ -10,16 +10,16 @@ import HomeIcon from "@mui/icons-material/Home";
 import LogoutIcon from "@mui/icons-material/Logout";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
+import Box from "@mui/material/Box";
 
 function NavBar() {
   const client = useContext(ClientContext);
   const navigate = useNavigate();
-  const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("user_id"));
+  const [loggedIn, setLoggedIn] = useState(!!client.user._id);
 
   // TODO: check if user is logged in and change logout button to login if not
   useEffect(() => {
     const onLogout = () => {
-      localStorage.clear();
       navigate(0);
     };
     client.on("logout", onLogout);
@@ -37,10 +37,8 @@ function NavBar() {
         backgroundColor: "#181818",
         borderBottom: "1px solid #282828",
         right: 0,
-        paddingTop: "15px",
-        height: "60px",
+        padding: "10px 20px 10px 20px",
         zIndex: 999,
-        // width: '100%'
       }}
       container
       alignItems="flex-start"
@@ -69,21 +67,23 @@ function NavBar() {
         </Tooltip>
       </Grid>
       <Grid item xs={2}>
-        {!loggedIn && (
-          <Button
-            variant="contained"
-            onClick={() => client.fire("login-link-click")}
-          >
-            Log In
-          </Button>
-        )}
-        {loggedIn && (
-          <Tooltip title="Log Out">
-            <IconButton onClick={() => client.logout()}>
-              <LogoutIcon />
-            </IconButton>
-          </Tooltip>
-        )}
+        <Box display="flex" justifyContent="flex-end">
+          {!loggedIn && (
+            <Button
+              variant="contained"
+              onClick={() => client.fire("login-link-click")}
+            >
+              Log In
+            </Button>
+          )}
+          {loggedIn && (
+            <Tooltip title="Log Out">
+              <IconButton onClick={() => client.logout()}>
+                <LogoutIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
       </Grid>
     </Grid>
   );

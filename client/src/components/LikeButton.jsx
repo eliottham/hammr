@@ -15,10 +15,10 @@ function LikeButton({ post, comment }) {
 
   useEffect(() => {
     if (post && post.liked_users) {
-      setLiked(post.liked_users.includes(localStorage.getItem("user_id")));
+      setLiked(post.liked_users.includes(client.user._id));
       setLikeCount(post.liked_users.length);
     } else if (comment && comment.liked_users) {
-      setLiked(comment.liked_users.includes(localStorage.getItem("user_id")));
+      setLiked(comment.liked_users.includes(client.user._id));
       setLikeCount(comment.liked_users.length);
     }
   }, []);

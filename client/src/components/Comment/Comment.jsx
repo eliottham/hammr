@@ -12,6 +12,7 @@ import LikeButton from "../LikeButton";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import Box from "@mui/material/Box";
 import EditComment from "./EditComment";
+import UsernameLink from "../User/UsernameLink";
 
 function Comment({ comment }) {
   const client = useContext(ClientContext);
@@ -32,11 +33,6 @@ function Comment({ comment }) {
     };
   }, []);
 
-  function formatTimeStamp(ts) {
-    const { unit, value } = Util.getTimeFromNow(ts);
-    return value ? value + " " + unit + " ago" : "a moment ago";
-  }
-
   function handleEditButtonClick() {
     setEdit(!edit);
   }
@@ -56,14 +52,15 @@ function Comment({ comment }) {
         />
         <Stack direction="column" spacing={1} sx={{ width: "90%" }}>
           <Typography variant="caption" sx={{ display: "flex" }}>
-            {thisComment.author.username} -
+            <UsernameLink author={thisComment.author} />
+            &nbsp;-
             {thisComment.edited ? (
               <Box sx={{ fontStyle: "italic" }}>
-                &nbsp;edited {formatTimeStamp(thisComment.timestamp)}
+                &nbsp;edited {Util.getTimeFromNow(thisComment.timestamp)}
               </Box>
             ) : (
               <Box sx={{ fontStyle: "default" }}>
-                &nbsp;{formatTimeStamp(thisComment.timestamp)}
+                &nbsp;{Util.getTimeFromNow(thisComment.timestamp)}
               </Box>
             )}
           </Typography>
@@ -73,7 +70,7 @@ function Comment({ comment }) {
           />
           <Stack direction="row" alignItems="center">
             <LikeButton comment={thisComment} />
-            {localStorage.getItem("user_id") === thisComment.author._id && (
+            {client.user._id === thisComment.author._id && (
               <Box sx={{ marginLeft: "8px" }}>
                 <Tooltip title="Edit Comment">
                   <IconButton onClick={handleEditButtonClick}>
@@ -108,14 +105,15 @@ function Comment({ comment }) {
         />
         <Stack direction="column" spacing={1}>
           <Typography variant="caption" sx={{ display: "flex" }}>
-            {thisComment.author.username} -
+            <UsernameLink author={thisComment.author} />
+            &nbsp;-
             {thisComment.edited ? (
               <Box sx={{ fontStyle: "italic" }}>
-                &nbsp;edited {formatTimeStamp(thisComment.timestamp)}
+                &nbsp;edited {Util.getTimeFromNow(thisComment.timestamp)}
               </Box>
             ) : (
               <Box sx={{ fontStyle: "default" }}>
-                &nbsp;{formatTimeStamp(thisComment.timestamp)}
+                &nbsp;{Util.getTimeFromNow(thisComment.timestamp)}
               </Box>
             )}
           </Typography>
@@ -125,7 +123,7 @@ function Comment({ comment }) {
           <Typography variant="body1">{thisComment.comment}</Typography>
           <Stack direction="row" alignItems="center">
             <LikeButton comment={thisComment} />
-            {localStorage.getItem("user_id") === thisComment.author._id && (
+            {client.user._id === thisComment.author._id && (
               <>
                 <Tooltip title="Edit Comment">
                   <IconButton onClick={handleEditButtonClick} edge="start">

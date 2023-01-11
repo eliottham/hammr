@@ -106,7 +106,9 @@ function SearchBar({
                 mouseOver={handleMouseOver}
                 onClick={handleTrackOnClick}
               />
-              {i < tracks.length - 1 ? <Divider key={track.id} /> : null}
+              {i < tracks.length - 1 ? (
+                <Divider key={track.id} sx={{ borderColor: "#424242" }} />
+              ) : null}
             </React.Fragment>
           );
         })}

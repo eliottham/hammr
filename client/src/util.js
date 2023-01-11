@@ -1,26 +1,30 @@
 const Util = {
-  TIME_MAP: {
-    seconds: 60,
-    minutes: 60,
-    hours: 24,
-    days: 7,
-    months: 30,
-    years: 12,
-  },
   getTimeFromNow(timestamp) {
+    const timeUnitValues = [
+      ["second", 60],
+      ["minute", 60],
+      ["hours", 24],
+      ["days", 7],
+      ["months", 30],
+      ["years", 12],
+    ];
     const date = new Date(timestamp);
     const now = new Date();
     let time = parseInt((now.getTime() - date.getTime()) / 1000);
-    for (let [unit, value] of Object.entries(this.TIME_MAP)) {
+    for (let i = 0; i < timeUnitValues.length; i++) {
+      let unit = timeUnitValues[i][0];
+      const value = timeUnitValues[i][1];
       const temp = parseInt(time / value);
       if (temp === 0) {
-        if (time === 1) {
-          unit = unit.substring(0, unit.length - 1);
+        if (time > 1) {
+          unit = unit + "s";
         }
-        return {
-          unit: unit,
-          value: time,
-        };
+        return time ? time + " " + unit + " ago" : "a moment ago";
+      } else if (
+        i < timeUnitValues.length - 1 &&
+        temp < timeUnitValues[i + 1][1]
+      ) {
+        return time ? time + " " + unit + " ago" : "a moment ago";
       } else {
         time = temp;
       }

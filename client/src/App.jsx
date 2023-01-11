@@ -14,6 +14,7 @@ import Player from "./components/Player";
 import NavBar from "./components/NavBar";
 import CreatePost from "./components/Post/CreatePost";
 import Post from "./components/Post/Post";
+import UserProfile from "./components/User/UserProfile";
 import SpotifyAuthorization from "./components/Dialog/SpotifyAuhorization";
 
 const client = new Client();
@@ -21,10 +22,7 @@ const client = new Client();
 const theme = createTheme({
   palette: {
     primary: {
-      // main: '#ffbb00',
-      // main: '#0070ff'
-      // main: "#b38500",
-      main: "rgba(56, 82, 56, 1)",
+      main: "#CCCCFF",
       grey: "#d6cdcb",
     },
     mode: "dark",
@@ -35,13 +33,20 @@ const App = () => {
   const [openLoginDialog, setOpenLoginDialog] = useState(false);
   const [openRegisterDialog, setOpenRegisterDialog] = useState(false);
   const [openSpotifyAuthDialog, setOpenSpotifyAuthDialog] = useState(false);
-
+  const [render, rerender] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const onLogin = ({ user_id, username }) => {
-      localStorage.setItem("user_id", user_id);
-      localStorage.setItem("username", username);
+    const onGetCurrentUser = (user) => {
+      client.user = user;
+      // Manually rerender so all child components have access to current user through the client context
+      rerender(!render);
+    };
+    client.on("get-current-user", onGetCurrentUser);
+    client.getCurrentUser();
+
+    const onLogin = (user) => {
+      client.user = user;
       client.getSpotifyTokens();
       setOpenLoginDialog(false);
       navigate(0);
@@ -75,6 +80,7 @@ const App = () => {
     );
 
     return () => {
+      client.un("get-current-user", onGetCurrentUser);
       client.un("login", onLogin);
       client.un("require-authentication", onRequireAuthentication);
       client.un("login-link-click", onRequireAuthentication);
@@ -85,6 +91,10 @@ const App = () => {
       );
     };
   }, []);
+
+  if (client.user === undefined) {
+    return <></>;
+  }
 
   return (
     <div>
@@ -115,6 +125,7 @@ const App = () => {
               <Route path="/" exact element={<Dashboard />} />
               <Route path="/post" element={<CreatePost />} />
               <Route path="/post/:post_id" element={<Post />} />
+              <Route path="/user/:user_id" element={<UserProfile />} />
             </Routes>
           </div>
           <Player />

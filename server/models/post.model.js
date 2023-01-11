@@ -5,7 +5,7 @@ const schema = new mongoose.Schema(
   {
     author: { type: ObjectId, ref: "User", required: true },
     title: { type: String, required: true },
-    spotifyTrack: { type: Object },
+    spotifyTrack: { type: Object, required: true },
     description: { type: String },
     comments: [{ type: ObjectId, ref: "Comment" }],
     liked_users: [{ type: ObjectId, ref: "User" }],
