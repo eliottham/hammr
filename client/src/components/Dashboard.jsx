@@ -21,7 +21,7 @@ function Dashboard() {
   }, []);
 
   return (
-    <Box sx={{ margin: "10px auto 10px auto", width: "40%" }}>
+    <Box sx={{ margin: "10px auto 0px auto", width: "40%" }}>
       {posts.map((post) => (
         <Box sx={{ marginBottom: "10px" }} key={post._id}>
           <PostPreview post={post} />

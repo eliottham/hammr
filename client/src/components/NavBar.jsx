@@ -34,10 +34,10 @@ function NavBar() {
       sx={{
         position: "sticky",
         top: 0,
-        backgroundColor: "#181818",
+        backgroundColor: "neutral.main",
         borderBottom: "1px solid #282828",
         right: 0,
-        padding: "10px 20px 10px 20px",
+        padding: "10px 20px 9px 20px",
         zIndex: 999,
       }}
       container
@@ -61,7 +61,11 @@ function NavBar() {
           </IconButton>
         </Tooltip>
         <Tooltip title="Notifications">
-          <IconButton>
+          <IconButton
+            onClick={() =>
+              client.fire("alert", { severity: "success", message: "TODO" })
+            }
+          >
             <NotificationsIcon />
           </IconButton>
         </Tooltip>

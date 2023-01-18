@@ -21,18 +21,18 @@ function LikeButton({ post, comment }) {
       setLiked(comment.liked_users.includes(client.user._id));
       setLikeCount(comment.liked_users.length);
     }
-  }, []);
+  }, [post, comment]);
 
   async function handleOnClick() {
     if (liked) {
-      const result = await client.dislike({ post, comment });
-      if (result?.status === 200) {
+      const resultStatus = await client.dislike({ post, comment });
+      if (resultStatus === 200) {
         setLiked(false);
         setLikeCount(likeCount - 1);
       }
     } else {
-      const result = await client.like({ post, comment });
-      if (result?.status === 200) {
+      const resultStatus = await client.like({ post, comment });
+      if (resultStatus === 200) {
         setLiked(true);
         setLikeCount(likeCount + 1);
       }
@@ -44,23 +44,29 @@ function LikeButton({ post, comment }) {
       <Stack direction="column" alignItems="center">
         <Tooltip title={liked ? "Dislike" : "Like"}>
           <IconButton onClick={handleOnClick}>
-            {liked && <ThumbUpAltIcon fontSize={"large"} />}
+            {liked && <ThumbUpAltIcon fontSize={"large"} color="primary" />}
             {!liked && <ThumbUpOffAltIcon fontSize={"large"} />}
           </IconButton>
         </Tooltip>
-        <Typography variant="h6" sx={{ marginTop: "-10px" }}>
+        <Typography
+          variant="h6"
+          sx={{ marginTop: "-10px" }}
+          color={liked ? "primary" : "white"}
+        >
           {likeCount}
         </Typography>
       </Stack>
     );
-  } else {
+  } else if (comment) {
     return (
       <Stack direction="row" alignItems="center">
         <Tooltip title={liked ? "Dislike" : "Like"}>
           <IconButton onClick={handleOnClick} edge="start">
-            {liked && <ThumbUpAltIcon fontSize={"small"} />}
+            {liked && <ThumbUpAltIcon fontSize={"small"} color="primary" />}
             {!liked && <ThumbUpOffAltIcon fontSize={"small"} />}
-            <Typography variant="button">&nbsp;{likeCount}</Typography>
+            <Typography variant="button" color={liked ? "primary" : "white"}>
+              &nbsp;{likeCount}
+            </Typography>
           </IconButton>
         </Tooltip>
       </Stack>

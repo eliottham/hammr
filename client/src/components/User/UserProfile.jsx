@@ -16,6 +16,7 @@ import UsernameLink from "./UsernameLink";
 import Avatar from "@mui/material/Avatar";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
+import FollowButton from "../FollowButton";
 
 function UserProfile() {
   const client = useContext(ClientContext);
@@ -25,7 +26,9 @@ function UserProfile() {
 
   useEffect(() => {
     const onGetUser = (responseUser) => {
-      setUser(responseUser);
+      if (responseUser._id === user_id) {
+        setUser(responseUser);
+      }
     };
     client.on("get-user", onGetUser);
     client.getUser(user_id);
@@ -63,19 +66,36 @@ function UserProfile() {
           >
             <Grid item xs={5}>
               <Box justifyContent="flex-end" display="flex">
-                <Avatar sx={{ height: "150px", width: "150px" }} />
+                <Avatar
+                  src={user.avatar}
+                  sx={{ height: "150px", width: "150px" }}
+                />
               </Box>
             </Grid>
             <Grid item xs={7} container direction="column" spacing={1}>
               <Grid item>
                 <Stack direction="row" alignItems="center" spacing={2}>
                   <Typography variant="h5">{user.username}</Typography>
-                  <Button variant="contained" size="small">
-                    Follow
-                  </Button>
-                  <Button variant="contained" size="small">
-                    Message
-                  </Button>
+                  {user._id === client.user._id ? (
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => navigate("/user/edit")}
+                    >
+                      Edit profile
+                    </Button>
+                  ) : (
+                    <>
+                      <FollowButton user={user} />
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => window.alert("TODO")}
+                      >
+                        Message
+                      </Button>
+                    </>
+                  )}
                 </Stack>
               </Grid>
               <Grid item>

@@ -8,6 +8,7 @@ const User = mongoose.model(
       username: { type: String, required: true, unique: true },
       email: { type: String, required: true, unique: true },
       password: { type: String, required: true },
+      name: { type: String },
       spotifyAccessToken: { type: String },
       spotifyRefreshToken: { type: String },
       followers: [{ type: ObjectId, ref: "User" }],
@@ -18,6 +19,15 @@ const User = mongoose.model(
       liked_posts: [{ type: ObjectId, ref: "Post" }],
       liked_comments: [{ type: ObjectId, ref: "Comment" }],
       timestamp: { type: Date, default: Date.now },
+    },
+    {
+      toJSON: {
+        transform(doc, ret) {
+          delete ret.password;
+          delete ret.spotifyAccessToken;
+          delete ret.spotifyRefreshToken;
+        },
+      },
     },
     { collection: "users" }
   )

@@ -19,27 +19,27 @@ import IconButton from "@mui/material/IconButton";
 import UsernameLink from "../User/UsernameLink";
 import Util from "../../util.js";
 
+const PostPreviewDescription = styled("div")({
+  position: "relative",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "normal",
+  display: "-webkit-box",
+  maxHeight: "100px",
+  WebkitBoxOrient: "vertical",
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    bottom: 0,
+    height: "100%",
+    width: "100%",
+    background:
+      "linear-gradient(rgba(30, 30, 30, 0) 30px, rgba(30, 30, 30, 1))",
+  },
+});
+
 function PostPreview({ post }) {
   const navigate = useNavigate();
-
-  const PostPreviewDescription = styled("div")({
-    position: "relative",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "normal",
-    display: "-webkit-box",
-    maxHeight: "100px",
-    WebkitBoxOrient: "vertical",
-    "&::after": {
-      content: '""',
-      position: "absolute",
-      bottom: 0,
-      height: "100%",
-      width: "100%",
-      background:
-        "linear-gradient(rgba(30, 30, 30, 0) 30px, rgba(30, 30, 30, 1))",
-    },
-  });
 
   return (
     <Paper

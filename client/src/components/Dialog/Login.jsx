@@ -31,7 +31,7 @@ function Login() {
     };
   }, []);
 
-  async function login() {
+  function login() {
     client.login({ email, password });
   }
 

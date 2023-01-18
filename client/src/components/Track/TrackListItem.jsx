@@ -3,15 +3,12 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Avatar from "@mui/material/Avatar";
-import { useTheme } from "@mui/material/styles";
 
 function TrackListItem({ track, onClick, mouseOver, style }) {
-  const theme = useTheme();
-
   const defaultStyle = {
-    backgroundColor: "#181818",
+    backgroundColor: "neutral.main",
     "&:hover": {
-      backgroundColor: theme.palette.primary.main,
+      backgroundColor: "primary.main",
     },
     zIndex: 99,
   };

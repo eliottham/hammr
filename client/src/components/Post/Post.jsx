@@ -14,6 +14,14 @@ import Typography from "@mui/material/Typography";
 import Util from "../../util.js";
 import UsernameLink from "../User/UsernameLink";
 
+const Item = styled(Paper)(({ theme }) => ({
+  position: "relative",
+  padding: "15px",
+  textAlign: "left",
+  borderRadius: "0.75rem",
+  width: document.documentElement.clientWidth / 2.5 + "px",
+}));
+
 function Post() {
   const client = useContext(ClientContext);
   const navigate = useNavigate();
@@ -38,21 +46,13 @@ function Post() {
     };
   }, [post_id]);
 
-  const Item = styled(Paper)(({ theme }) => ({
-    position: "relative",
-    padding: "15px",
-    textAlign: "left",
-    borderRadius: "0.75rem",
-    width: document.documentElement.clientWidth / 2.5 + "px",
-  }));
-
   return (
     <Grid
       container
       direction="column"
       spacing={1}
       alignItems="center"
-      sx={{ marginTop: "0px", marginBottom: "5px" }}
+      sx={{ marginTop: "2px", marginBottom: "10px" }}
     >
       <Grid item>
         <Item>

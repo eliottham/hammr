@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { CssBaseline, Dialog } from "@mui/material";
@@ -16,6 +16,10 @@ import CreatePost from "./components/Post/CreatePost";
 import Post from "./components/Post/Post";
 import UserProfile from "./components/User/UserProfile";
 import SpotifyAuthorization from "./components/Dialog/SpotifyAuhorization";
+import EditUserProfile from "./components/User/EditUserProfile";
+import Alert from "@mui/material/Alert";
+import Slide from "@mui/material/Slide";
+import Box from "@mui/material/Box";
 
 const client = new Client();
 
@@ -23,7 +27,9 @@ const theme = createTheme({
   palette: {
     primary: {
       main: "#CCCCFF",
-      grey: "#d6cdcb",
+    },
+    neutral: {
+      main: "#181818",
     },
     mode: "dark",
   },
@@ -34,11 +40,14 @@ const App = () => {
   const [openRegisterDialog, setOpenRegisterDialog] = useState(false);
   const [openSpotifyAuthDialog, setOpenSpotifyAuthDialog] = useState(false);
   const [render, rerender] = useState(false);
+  const [alert, setAlert] = useState();
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("app mount");
     const onGetCurrentUser = (user) => {
       client.user = user;
+      console.log("manual rerender");
       // Manually rerender so all child components have access to current user through the client context
       rerender(!render);
     };
@@ -46,9 +55,10 @@ const App = () => {
     client.getCurrentUser();
 
     const onLogin = (user) => {
+      console.log("on login");
       client.user = user;
-      client.getSpotifyTokens();
       setOpenLoginDialog(false);
+      console.log("navigate");
       navigate(0);
     };
     client.on("login", onLogin);
@@ -79,6 +89,14 @@ const App = () => {
       onSpotifyAuthorizationLinkClick
     );
 
+    const onAlert = (a) => {
+      setAlert(a);
+      setTimeout(() => {
+        setAlert();
+      }, 5000);
+    };
+    client.on("alert", onAlert);
+
     return () => {
       client.un("get-current-user", onGetCurrentUser);
       client.un("login", onLogin);
@@ -89,6 +107,7 @@ const App = () => {
         "spotify-authorization-link-click",
         onSpotifyAuthorizationLinkClick
       );
+      client.un("alert", onAlert);
     };
   }, []);
 
@@ -97,7 +116,7 @@ const App = () => {
   }
 
   return (
-    <div>
+    <Box>
       <ClientProvider value={client}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
@@ -120,18 +139,35 @@ const App = () => {
             disableScrollLock
           />
           <NavBar />
-          <div style={{ paddingBottom: "80px" }}>
+          <Box
+            sx={{
+              paddingBottom: "80px",
+            }}
+          >
             <Routes>
               <Route path="/" exact element={<Dashboard />} />
               <Route path="/post" element={<CreatePost />} />
               <Route path="/post/:post_id" element={<Post />} />
               <Route path="/user/:user_id" element={<UserProfile />} />
+              <Route path="/user/edit" element={<EditUserProfile />} />
             </Routes>
-          </div>
+          </Box>
+          <Box
+            sx={{
+              overflow: "hidden",
+              position: "fixed",
+              bottom: "80px",
+              width: "100%",
+            }}
+          >
+            <Slide direction="up" in={!!alert}>
+              <Alert severity={alert?.severity}>{alert?.message}</Alert>
+            </Slide>
+          </Box>
           <Player />
         </ThemeProvider>
       </ClientProvider>
-    </div>
+    </Box>
   );
 };
 

@@ -99,6 +99,7 @@ function Player() {
       };
     };
     client.on("get-spotify-tokens", onGetSpotifyTokens);
+    client.getSpotifyTokens();
 
     return () => {
       client.un("get-spotify-tokens", onGetSpotifyTokens);
@@ -158,7 +159,7 @@ function Player() {
       sx={{
         position: "fixed",
         bottom: 0,
-        backgroundColor: "#181818",
+        backgroundColor: "neutral.main",
         borderTop: "1px solid #282828",
         right: 0,
         height: "80px",

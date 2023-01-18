@@ -160,25 +160,32 @@ async function getAndUpdateSpotifyTokens(user, code) {
       if (response.data.access_token && response.data.refresh_token) {
         spotifyAccessToken = response.data.access_token;
         spotifyRefreshToken = response.data.refresh_token;
-        await User.findOneAndUpdate(
-          {
-            _id: user._id,
-          },
-          {
-            spotifyAccessToken: spotifyAccessToken,
-            spotifyRefreshToken: spotifyRefreshToken,
-          }
-        );
+        await user.updateOne({
+          spotifyAccessToken: spotifyAccessToken,
+          spotifyRefreshToken: spotifyRefreshToken,
+        });
+        // await User.findOneAndUpdate(
+        //   {
+        //     _id: user._id,
+        //   },
+        //   {
+        //     spotifyAccessToken: spotifyAccessToken,
+        //     spotifyRefreshToken: spotifyRefreshToken,
+        //   }
+        // );
       } else if (response.data.access_token) {
         spotifyAccessToken = response.data.access_token;
-        await User.findOneAndUpdate(
-          {
-            _id: user._id,
-          },
-          {
-            spotifyAccessToken: spotifyAccessToken,
-          }
-        );
+        await user.updateOne({
+          spotifyAccessToken: spotifyAccessToken,
+        });
+        // await User.findOneAndUpdate(
+        //   {
+        //     _id: user._id,
+        //   },
+        //   {
+        //     spotifyAccessToken: spotifyAccessToken,
+        //   }
+        // );
       }
     }
     return {
@@ -352,11 +359,11 @@ app.post(
 );
 
 app.get("/current-user", async (req, res) => {
+  const currentUser = {
+    _id: null,
+    username: null,
+  };
   try {
-    const currentUser = {
-      _id: null,
-      username: null,
-    };
     const token = req.cookies["token"];
     if (token) {
       const decoded = jwt.verify(token, JWT_SECRET);
@@ -366,7 +373,11 @@ app.get("/current-user", async (req, res) => {
     }
     res.status(200).json(currentUser);
   } catch (err) {
-    res.status(500).send(err);
+    if (err.name === "TokenExpiredError") {
+      res.status(401).json(currentUser);
+    } else {
+      res.status(500).send(err);
+    }
   }
 });
 
@@ -382,6 +393,87 @@ app.get("/user/:user_id", async (req, res) => {
     res.status(500).send(err);
   }
 });
+
+app.put(
+  "/user/edit",
+  useAuth(async (req, res, user) => {
+    const { name, username, bio } = req.body;
+    try {
+      let updatedUser = await User.findByIdAndUpdate(
+        user._id,
+        {
+          name: name,
+          username: username,
+          bio: bio,
+        },
+        { new: true }
+      );
+      res.status(200).json(updatedUser);
+    } catch (err) {
+      console.log(err);
+      // duplicate key error
+      if (err.code === 11000) {
+        res.status(409).json({ errorFields: Object.keys(err.keyValue) });
+      } else {
+        res.status(500).json(err);
+      }
+    }
+  })
+);
+
+app.post(
+  "/follow",
+  useAuth(async (req, res, user) => {
+    const targetUser = req.body.user;
+    try {
+      if (targetUser._id) {
+        await user
+          .updateOne({
+            $push: { following: new ObjectId(targetUser._id) },
+          })
+          .lean();
+        const targetUserDocument = await User.findByIdAndUpdate(
+          targetUser._id,
+          {
+            $push: { followers: user._id },
+          },
+          { new: true }
+        ).lean();
+        res.status(200).json(targetUserDocument);
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
+
+app.post(
+  "/unfollow",
+  useAuth(async (req, res, user) => {
+    const targetUser = req.body.user;
+    try {
+      if (targetUser._id) {
+        await user
+          .updateOne({
+            $pull: { following: new ObjectId(targetUser._id) },
+          })
+          .lean();
+        const targetUserDocument = await User.findByIdAndUpdate(
+          targetUser._id,
+          {
+            $pull: { followers: user._id },
+          },
+          { new: true }
+        ).lean();
+        res.status(200).json(targetUserDocument);
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
 
 app.post(
   "/post",

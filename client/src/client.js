@@ -6,7 +6,7 @@ class Client extends Evt {
     const status = e.response && e.response.status;
     if (status === 401) {
       // prompt login
-      this.fire("require-authentication");
+      this.fire("require-authentication", e.response.data);
     } else if (status === 404) {
       // file not found page
       this.fire("not-found", e.response && e.response.data);
@@ -54,6 +54,7 @@ class Client extends Evt {
     }
   }
 
+  // Returns only the current user's id and username
   async getCurrentUser() {
     try {
       const response = await axios.get("/current-user");
@@ -72,7 +73,45 @@ class Client extends Evt {
     }
   }
 
+  async submitUserProfileEdits(data) {
+    try {
+      const response = await axios.put("/user/edit", data);
+      this.fire("get-user", response.data);
+      this.fire("alert", {
+        severity: "success",
+        message: "Profile saved.",
+      });
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
+  async follow(data) {
+    try {
+      const response = await axios.post("/follow", data);
+      if (data.user) {
+        this.fire("get-user", response.data);
+      }
+      return response.status;
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
+  async unfollow(data) {
+    try {
+      const response = await axios.post("/unfollow", data);
+      if (data.user) {
+        this.fire("get-user", response.data);
+      }
+      return response.status;
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
   async getSpotifyTokens(args) {
+    console.log("get spotify tokens");
     try {
       const response = await axios.get("/spotify-tokens");
       response.data.track = args.track;
@@ -84,6 +123,7 @@ class Client extends Evt {
   }
 
   _checkForUpdatedSpotifyTokens({ spotifyAccessToken, track }) {
+    console.log("check for updated spotify tokens");
     // if expired tokens needed to be refreshed on the server,  fire the get-spotify-tokens event with the new token
     if (spotifyAccessToken) {
       this.fire("get-spotify-tokens", { spotifyAccessToken, track });
@@ -191,7 +231,7 @@ class Client extends Evt {
   async like(data) {
     try {
       const response = await axios.post("/like", data);
-      return response;
+      return response.status;
     } catch (e) {
       this.checkError(e);
     }
@@ -200,7 +240,7 @@ class Client extends Evt {
   async dislike(data) {
     try {
       const response = await axios.post("/dislike", data);
-      return response;
+      return response.status;
     } catch (e) {
       this.checkError(e);
     }
