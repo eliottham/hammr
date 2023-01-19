@@ -60,6 +60,12 @@ class Client extends Evt {
       const response = await axios.get("/current-user");
       this.fire("get-current-user", response.data);
     } catch (e) {
+      if (e.response.status === 401) {
+        this.fire("get-current-user", {
+          _id: null,
+          username: null,
+        });
+      }
       this.checkError(e);
     }
   }
@@ -68,6 +74,20 @@ class Client extends Evt {
     try {
       const response = await axios.get(`/user/${user_id}`);
       this.fire("get-user", response.data);
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
+  async uploadAvatar(file) {
+    const data = new FormData();
+    data.append("avatar", file);
+    try {
+      const response = await axios.post("/user/avatar", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     } catch (e) {
       this.checkError(e);
     }

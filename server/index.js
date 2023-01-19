@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -11,14 +12,14 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const axios = require("axios");
 const bodyParser = require("body-parser");
-
-const JWT_SECRET = "secret123";
-const SPOTIFY_CLIENT_ID = "2f11b20a4be74840a549fb4d5d6783c1";
-const SPOTIFY_CLIENT_SECRET_KEY = "b852a8dc6a27420a9df7c0b8ed2a79ce";
-const SPOTIFY_REDIRECT_URI =
-  "http://localhost:1337/spotify-authorization-callback";
-const SPOTIFY_USER_SCOPE =
-  "user-read-private user-read-email user-read-playback-state user-modify-playback-state user-follow-read user-library-modify user-library-read streaming playlist-modify-private user-read-currently-playing user-read-recently-played";
+const upload = require("multer")();
+const cloudinary = require("cloudinary");
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+const { Readable } = require("stream");
 
 app.use(cors());
 app.use(express.json());
@@ -85,7 +86,8 @@ app.post("/login", async (req, res) => {
           email: user.email,
           username: user.username,
         },
-        JWT_SECRET,
+        // JWT_SECRET,
+        process.env.JWT_SECRET,
         {
           expiresIn: "72h",
         }
@@ -111,7 +113,7 @@ function useAuth(handler) {
   return async (req, res) => {
     try {
       const token = req.cookies["token"];
-      const decoded = jwt.verify(token, JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await User.findById(new ObjectId(decoded._id));
       handler(req, res, user);
     } catch (err) {
@@ -135,7 +137,7 @@ async function getAndUpdateSpotifyTokens(user, code) {
   const params = code
     ? {
         code: code || null,
-        redirect_uri: SPOTIFY_REDIRECT_URI,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
         grant_type: "authorization_code",
       }
     : {
@@ -150,7 +152,9 @@ async function getAndUpdateSpotifyTokens(user, code) {
         Authorization:
           "Basic " +
           Buffer.from(
-            SPOTIFY_CLIENT_ID + ":" + SPOTIFY_CLIENT_SECRET_KEY
+            process.env.SPOTIFY_CLIENT_ID +
+              ":" +
+              process.env.SPOTIFY_CLIENT_SECRET_KEY
           ).toString("base64"),
       },
       params: params,
@@ -227,14 +231,14 @@ app.get(
 
 app.get("/spotify-authorization", (req, res) => {
   const state = generateRandomString(16);
-  const scope = SPOTIFY_USER_SCOPE;
+  const scope = process.env.SPOTIFY_USER_SCOPE;
   res.redirect(
     "https://accounts.spotify.com/authorize?" +
       new URLSearchParams({
         response_type: "code",
-        client_id: SPOTIFY_CLIENT_ID,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
         scope: scope,
-        redirect_uri: SPOTIFY_REDIRECT_URI,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
         state: state,
         show_dialog: true,
       }).toString()
@@ -366,7 +370,7 @@ app.get("/current-user", async (req, res) => {
   try {
     const token = req.cookies["token"];
     if (token) {
-      const decoded = jwt.verify(token, JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await User.findById(new ObjectId(decoded._id));
       currentUser._id = user._id;
       currentUser.username = user.username;
@@ -393,6 +397,32 @@ app.get("/user/:user_id", async (req, res) => {
     res.status(500).send(err);
   }
 });
+
+app.post(
+  "/user/avatar",
+  upload.single("avatar"),
+  useAuth(async (req, res, user) => {
+    try {
+      const cloudinaryUploadStream = cloudinary.v2.uploader.upload_stream(
+        { folder: "avatars" },
+        (err, image) => {
+          if (err) {
+            console.log(err);
+            res.status(500).send(err);
+          }
+          if (image) {
+            user.updateOne({
+              avatar: image.secure_url,
+            });
+          }
+        }
+      );
+      Readable.from(req.file.buffer).pipe(cloudinaryUploadStream);
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  })
+);
 
 app.put(
   "/user/edit",

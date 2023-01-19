@@ -7,7 +7,8 @@ const User = mongoose.model(
     {
       username: { type: String, required: true, unique: true },
       email: { type: String, required: true, unique: true },
-      password: { type: String, required: true },
+      avatar: { type: String },
+      password: { type: String, required: true, minLength: 5 },
       name: { type: String },
       spotifyAccessToken: { type: String },
       spotifyRefreshToken: { type: String },

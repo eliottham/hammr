@@ -1,22 +1,13 @@
-import { useState, useContext, useEffect } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useState, useContext, useEffect, useRef } from "react";
 import Paper from "@mui/material/Paper";
 import { styled } from "@mui/material/styles";
-import { useParams, useNavigate } from "react-router-dom";
+
 import ClientContext from "../../contexts/client_context";
-import CreateComment from "../Comment/CreateComment";
-import Track from "../Track/Track";
-import Comment from "../Comment/Comment";
 import Grid from "@mui/material/Grid";
-import Box from "@mui/material/Box";
-import Divider from "@mui/material/Divider";
-import LikeButton from "../LikeButton";
 import Typography from "@mui/material/Typography";
-import Util from "../../util.js";
-import UsernameLink from "./UsernameLink";
 import Avatar from "@mui/material/Avatar";
-import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import FollowButton from "../FollowButton";
 import TextField from "@mui/material/TextField";
 
 const paperWidth = document.documentElement.clientWidth / 2.5;
@@ -42,6 +33,7 @@ function EditUserProfile() {
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [bioCharCount, setBioCharCount] = useState(0);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     const onGetUser = (responseUser) => {
@@ -57,7 +49,6 @@ function EditUserProfile() {
     if (client.user._id) {
       client.getUser(client.user._id);
     } else {
-      // setUser();
       client.fire("require-authentication");
     }
 
@@ -65,6 +56,14 @@ function EditUserProfile() {
       client.un("get-user", onGetUser);
     };
   }, []);
+
+  function uploadImage(e) {
+    inputRef.current?.click();
+  }
+
+  function handleFileChange(e) {
+    e.target.files.length && client.uploadAvatar(e.target.files[0]);
+  }
 
   return user ? (
     <StyledPaper>
@@ -76,8 +75,16 @@ function EditUserProfile() {
         alignItems="center"
         justifyContent="center"
       >
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
         <Grid item xs={1} align="right">
           <Avatar
+            onClick={uploadImage}
             src={user.avatar}
             sx={{
               width: "50px",
@@ -93,6 +100,7 @@ function EditUserProfile() {
             {user.username}
           </Typography>
           <Typography
+            onClick={uploadImage}
             variant="body2"
             gutterBottom
             mt={-1}
