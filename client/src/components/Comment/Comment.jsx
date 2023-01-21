@@ -13,6 +13,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import Box from "@mui/material/Box";
 import EditComment from "./EditComment";
 import UsernameLink from "../User/UsernameLink";
+import Grid from "@mui/material/Grid";
 
 function Comment({ comment }) {
   const client = useContext(ClientContext);
@@ -39,18 +40,15 @@ function Comment({ comment }) {
 
   if (edit) {
     return (
-      <Stack
-        direction="row"
-        alignItems="flex-start"
-        justifyContent="flex-start"
-        spacing={1}
-      >
-        <Avatar
-          sx={{ width: 24, height: 24 }}
-          variant="circle"
-          src={thisComment.author.avatar}
-        />
-        <Stack direction="column" spacing={1} sx={{ width: "90%" }}>
+      <Grid container spacing={1} alignItems="center">
+        <Grid item xs={1} sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Avatar
+            sx={{ width: 24, height: 24 }}
+            variant="circle"
+            src={thisComment.author.avatarUrl}
+          />
+        </Grid>
+        <Grid item xs={11}>
           <Typography variant="caption" sx={{ display: "flex" }}>
             <UsernameLink author={thisComment.author} />
             &nbsp;-
@@ -64,6 +62,9 @@ function Comment({ comment }) {
               </Box>
             )}
           </Typography>
+        </Grid>
+        <Grid item xs={1} />
+        <Grid item xs={9}>
           <EditComment
             originalComment={thisComment}
             cancelEditFunction={() => setEdit(false)}
@@ -71,39 +72,40 @@ function Comment({ comment }) {
           <Stack direction="row" alignItems="center">
             <LikeButton comment={thisComment} />
             {client.user._id === thisComment.author._id && (
-              <Box sx={{ marginLeft: "8px" }}>
+              <>
                 <Tooltip title="Edit Comment">
-                  <IconButton onClick={handleEditButtonClick}>
+                  <IconButton onClick={handleEditButtonClick} edge="start">
                     <EditOutlinedIcon fontSize="small" />
+                    <Typography variant="button">&nbsp;Edit</Typography>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Delete Comment">
                   <IconButton
+                    edge="start"
                     onClick={() => client.deleteComment(thisComment._id)}
                   >
                     <DeleteOutlineIcon fontSize="small" />
+                    <Typography variant="button">&nbsp;Delete</Typography>
                   </IconButton>
                 </Tooltip>
-              </Box>
+              </>
             )}
           </Stack>
-        </Stack>
-      </Stack>
+        </Grid>
+        <Grid item xs={2} />
+      </Grid>
     );
   } else {
     return (
-      <Stack
-        direction="row"
-        alignItems="flex-start"
-        justifyContent="flex-start"
-        spacing={1}
-      >
-        <Avatar
-          sx={{ width: 24, height: 24 }}
-          variant="circle"
-          src={thisComment.author.avatar}
-        />
-        <Stack direction="column" spacing={1}>
+      <Grid container spacing={1} alignItems="center">
+        <Grid item xs={1} sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Avatar
+            sx={{ width: 24, height: 24 }}
+            variant="circle"
+            src={thisComment.author.avatarUrl}
+          />
+        </Grid>
+        <Grid item xs={11}>
           <Typography variant="caption" sx={{ display: "flex" }}>
             <UsernameLink author={thisComment.author} />
             &nbsp;-
@@ -117,8 +119,13 @@ function Comment({ comment }) {
               </Box>
             )}
           </Typography>
+        </Grid>
+        <Grid item xs={1} />
+        <Grid item xs={9}>
           {thisComment.spotifyTrack && (
-            <Track track={thisComment.spotifyTrack} />
+            <Box mb="10px">
+              <Track track={thisComment.spotifyTrack} />
+            </Box>
           )}
           <Typography variant="body1">{thisComment.comment}</Typography>
           <Stack direction="row" alignItems="center">
@@ -143,8 +150,9 @@ function Comment({ comment }) {
               </>
             )}
           </Stack>
-        </Stack>
-      </Stack>
+          <Grid item xs={2} />
+        </Grid>
+      </Grid>
     );
   }
 }

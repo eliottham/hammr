@@ -401,24 +401,49 @@ app.get("/user/:user_id", async (req, res) => {
 app.post(
   "/user/avatar",
   upload.single("avatar"),
-  useAuth(async (req, res, user) => {
+  useAuth((req, res, user) => {
     try {
       const cloudinaryUploadStream = cloudinary.v2.uploader.upload_stream(
         { folder: "avatars" },
-        (err, image) => {
+        async (err, image) => {
           if (err) {
             console.log(err);
             res.status(500).send(err);
           }
           if (image) {
-            user.updateOne({
-              avatar: image.secure_url,
+            cloudinary.v2.uploader.destroy(user.avatarPublicId, {
+              invalidate: true,
             });
+            await user.updateOne({
+              avatarUrl: image.secure_url,
+              avatarPublicId: image.public_id,
+            });
+            res.status(200).json({ newAvatarUrl: image.secure_url });
           }
         }
       );
       Readable.from(req.file.buffer).pipe(cloudinaryUploadStream);
     } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
+
+app.delete(
+  "/user/avatar",
+  useAuth(async (req, res, user) => {
+    try {
+      cloudinary.v2.uploader.destroy(user.avatarPublicId, {
+        invalidate: true,
+      });
+      await user.updateOne({
+        avatarUrl: "",
+        avatarPublicId: "",
+      });
+      res.sendStatus(200);
+    } catch (err) {
+      console.log(err);
       res.status(500).send(err);
     }
   })

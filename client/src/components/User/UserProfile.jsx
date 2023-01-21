@@ -3,16 +3,9 @@ import Paper from "@mui/material/Paper";
 import { styled } from "@mui/material/styles";
 import { useParams, useNavigate } from "react-router-dom";
 import ClientContext from "../../contexts/client_context";
-import CreateComment from "../Comment/CreateComment";
-import Track from "../Track/Track";
-import Comment from "../Comment/Comment";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
-import Divider from "@mui/material/Divider";
-import LikeButton from "../LikeButton";
 import Typography from "@mui/material/Typography";
-import Util from "../../util.js";
-import UsernameLink from "./UsernameLink";
 import Avatar from "@mui/material/Avatar";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
@@ -36,7 +29,7 @@ function UserProfile() {
     return () => {
       client.un("get-user", onGetUser);
     };
-  }, [user_id]);
+  }, [client, user_id]);
 
   const Item = styled(Paper)(({ theme }) => ({
     position: "relative",
@@ -67,7 +60,7 @@ function UserProfile() {
             <Grid item xs={5}>
               <Box justifyContent="flex-end" display="flex">
                 <Avatar
-                  src={user.avatar}
+                  src={user.avatarUrl}
                   sx={{ height: "150px", width: "150px" }}
                 />
               </Box>

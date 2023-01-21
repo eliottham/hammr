@@ -79,15 +79,25 @@ class Client extends Evt {
     }
   }
 
-  async uploadAvatar(file) {
+  async uploadAvatar(blob) {
     const data = new FormData();
-    data.append("avatar", file);
+    data.append("avatar", blob);
     try {
       const response = await axios.post("/user/avatar", data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+      this.fire("avatar-change", response.data);
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
+  async deleteAvatar() {
+    try {
+      await axios.delete("/user/avatar");
+      this.fire("avatar-change");
     } catch (e) {
       this.checkError(e);
     }
@@ -191,7 +201,7 @@ class Client extends Evt {
 
   async deletePost(post_id) {
     try {
-      const response = await axios.delete(`/post/${post_id}`);
+      await axios.delete(`/post/${post_id}`);
       this.fire("delete-post");
     } catch (e) {
       this.checkError(e);

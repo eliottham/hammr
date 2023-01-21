@@ -87,21 +87,23 @@ function Post() {
           <CreateComment post_id={post_id} />
         </Item>
       </Grid>
-      {post.comments && (
+      {post.comments?.length ? (
         <Grid item>
           <Item>
             {post.comments.map((comment, i) => {
               return (
-                <Box key={comment._id}>
+                <Box key={comment._id} ml="-30px">
                   <Comment comment={comment} />
                   {i < post.comments.length - 1 ? (
-                    <Divider sx={{ margin: "5px 0 15px 0" }} />
+                    <Divider sx={{ margin: "5px 0 15px 30px" }} />
                   ) : null}
                 </Box>
               );
             })}
           </Item>
         </Grid>
+      ) : (
+        <></>
       )}
     </Grid>
   );
