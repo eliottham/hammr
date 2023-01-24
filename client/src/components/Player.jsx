@@ -99,7 +99,9 @@ function Player() {
       };
     };
     client.on("get-spotify-tokens", onGetSpotifyTokens);
-    client.getSpotifyTokens();
+    if (client._id) {
+      client.getSpotifyTokens();
+    }
 
     return () => {
       client.un("get-spotify-tokens", onGetSpotifyTokens);
@@ -163,6 +165,7 @@ function Player() {
         borderTop: "1px solid #282828",
         right: 0,
         height: "80px",
+        zIndex: 1000,
       }}
       container
       alignItems="center"

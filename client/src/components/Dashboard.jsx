@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import ClientContext from "../contexts/client_context";
 import PostPreview from "./Post/PostPreview";
 import Box from "@mui/material/Box";

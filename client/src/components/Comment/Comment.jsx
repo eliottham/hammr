@@ -1,6 +1,5 @@
 import { useContext, useState, useEffect } from "react";
 import Stack from "@mui/material/Stack";
-import Avatar from "@mui/material/Avatar";
 import Track from "../Track/Track";
 import Typography from "@mui/material/Typography";
 import Util from "../../util.js";
@@ -13,6 +12,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import Box from "@mui/material/Box";
 import EditComment from "./EditComment";
 import UsernameLink from "../User/UsernameLink";
+import UserAvatarLink from "../User/UserAvatarLink";
 import Grid from "@mui/material/Grid";
 
 function Comment({ comment }) {
@@ -42,25 +42,21 @@ function Comment({ comment }) {
     return (
       <Grid container spacing={1} alignItems="center">
         <Grid item xs={1} sx={{ display: "flex", justifyContent: "flex-end" }}>
-          <Avatar
-            sx={{ width: 24, height: 24 }}
-            variant="circle"
-            src={thisComment.author.avatarUrl}
-          />
+          <UserAvatarLink user={thisComment.author} />
         </Grid>
         <Grid item xs={11}>
           <Typography variant="caption" sx={{ display: "flex" }}>
-            <UsernameLink author={thisComment.author} />
-            &nbsp;-
-            {thisComment.edited ? (
-              <Box sx={{ fontStyle: "italic" }}>
-                &nbsp;edited {Util.getTimeFromNow(thisComment.timestamp)}
-              </Box>
-            ) : (
-              <Box sx={{ fontStyle: "default" }}>
-                &nbsp;{Util.getTimeFromNow(thisComment.timestamp)}
-              </Box>
-            )}
+            <UsernameLink user={thisComment.author} />
+            <Typography
+              variant="caption"
+              alignContent="center"
+              color="text.secondary"
+              fontStyle={thisComment.edited ? "italic" : "default"}
+            >
+              &nbsp;&bull;&nbsp;
+              {thisComment.edited && "edited "}
+              {Util.getTimeFromNow(thisComment.timestamp)}
+            </Typography>
           </Typography>
         </Grid>
         <Grid item xs={1} />
@@ -99,25 +95,21 @@ function Comment({ comment }) {
     return (
       <Grid container spacing={1} alignItems="center">
         <Grid item xs={1} sx={{ display: "flex", justifyContent: "flex-end" }}>
-          <Avatar
-            sx={{ width: 24, height: 24 }}
-            variant="circle"
-            src={thisComment.author.avatarUrl}
-          />
+          <UserAvatarLink user={thisComment.author} />
         </Grid>
         <Grid item xs={11}>
           <Typography variant="caption" sx={{ display: "flex" }}>
-            <UsernameLink author={thisComment.author} />
-            &nbsp;-
-            {thisComment.edited ? (
-              <Box sx={{ fontStyle: "italic" }}>
-                &nbsp;edited {Util.getTimeFromNow(thisComment.timestamp)}
-              </Box>
-            ) : (
-              <Box sx={{ fontStyle: "default" }}>
-                &nbsp;{Util.getTimeFromNow(thisComment.timestamp)}
-              </Box>
-            )}
+            <UsernameLink user={thisComment.author} />
+            <Typography
+              variant="caption"
+              alignContent="center"
+              color="text.secondary"
+              fontStyle={thisComment.edited ? "italic" : "default"}
+            >
+              &nbsp;&bull;&nbsp;
+              {thisComment.edited && "edited "}
+              {Util.getTimeFromNow(thisComment.timestamp)}
+            </Typography>
           </Typography>
         </Grid>
         <Grid item xs={1} />

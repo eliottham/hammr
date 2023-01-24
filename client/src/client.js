@@ -61,12 +61,14 @@ class Client extends Evt {
       this.fire("get-current-user", response.data);
     } catch (e) {
       if (e.response.status === 401) {
+        // User is not logged in. Send empty user so that App will rerender
         this.fire("get-current-user", {
           _id: null,
           username: null,
         });
+      } else {
+        this.checkError(e);
       }
-      this.checkError(e);
     }
   }
 
@@ -154,7 +156,7 @@ class Client extends Evt {
 
   _checkForUpdatedSpotifyTokens({ spotifyAccessToken, track }) {
     console.log("check for updated spotify tokens");
-    // if expired tokens needed to be refreshed on the server,  fire the get-spotify-tokens event with the new token
+    // if expired tokens needed to be refreshed on the server, fire the get-spotify-tokens event with the new token
     if (spotifyAccessToken) {
       this.fire("get-spotify-tokens", { spotifyAccessToken, track });
     }

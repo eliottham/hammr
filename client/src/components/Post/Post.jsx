@@ -13,6 +13,7 @@ import LikeButton from "../LikeButton";
 import Typography from "@mui/material/Typography";
 import Util from "../../util.js";
 import UsernameLink from "../User/UsernameLink";
+import UserAvatarLink from "../User/UserAvatarLink";
 
 const Item = styled(Paper)(({ theme }) => ({
   position: "relative",
@@ -56,29 +57,46 @@ function Post() {
     >
       <Grid item>
         <Item>
-          <Grid container>
-            <Grid item xs={1} sx={{ marginTop: "125px" }}>
+          <Grid container spacing={1} alignItems="center">
+            <Grid
+              item
+              xs={1}
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
+            >
+              <UserAvatarLink user={post.author} />
+            </Grid>
+            <Grid item xs={11}>
+              <UsernameLink user={post.author} />
+              <Typography
+                variant="caption"
+                alignItems="center"
+                color="text.secondary"
+              >
+                &nbsp;&bull;&nbsp;
+                {Util.getTimeFromNow(post.timestamp)}
+              </Typography>
+            </Grid>
+            <Grid item xs={1} />
+            <Grid item xs={11}>
+              <Typography variant="h5">{post.title}</Typography>
+            </Grid>
+            <Grid item xs={1}>
               <LikeButton post={post} />
             </Grid>
-            <Grid item container direction="column" xs={11} spacing={2}>
-              <Grid item>
-                <Typography variant="caption" color="text.secondary">
-                  Posted by <UsernameLink author={post.author} />{" "}
-                  {Util.getTimeFromNow(post.timestamp)}
-                </Typography>
-                <Typography variant="h5">{post.title}</Typography>
-              </Grid>
-              {post.spotifyTrack && (
-                <Grid item>
-                  <Track track={post.spotifyTrack} />
-                </Grid>
-              )}
-              {post.description && (
-                <Grid item>
+            <Grid item xs={11}>
+              <Track track={post.spotifyTrack} />
+            </Grid>
+            {post.description && (
+              <>
+                <Grid item xs={1} />
+                <Grid item xs={11}>
                   <Typography variant="body1">{post.description}</Typography>
                 </Grid>
-              )}
-            </Grid>
+              </>
+            )}
           </Grid>
         </Item>
       </Grid>

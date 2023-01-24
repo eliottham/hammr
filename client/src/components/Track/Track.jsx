@@ -68,7 +68,7 @@ function Track({ track }) {
         trackImg.removeEventListener("load", onTrackImgLoad);
       }
     };
-  }, []);
+  }, [track]);
 
   function handlePlayTrackClick(e) {
     e.stopPropagation();
@@ -103,6 +103,7 @@ function Track({ track }) {
       >
         <img
           src={track?.album.images[0].url}
+          alt="album"
           width="120px"
           height="120px"
           style={{

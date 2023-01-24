@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import Typography from "@mui/material/Typography";
+import Avatar from "@mui/material/Avatar";
 
-function UsernameLink({ user }) {
+function UserAvatarLink({ user }) {
   const navigate = useNavigate();
 
   function handleClick(e) {
@@ -11,19 +11,20 @@ function UsernameLink({ user }) {
     }
   }
   return (
-    <Typography
+    <Avatar
       sx={{
+        width: 24,
+        height: 24,
         "&:hover": {
           cursor: "pointer",
           textDecoration: "underline",
         },
       }}
-      variant="caption"
       onClick={handleClick}
-    >
-      {user?.username}
-    </Typography>
+      variant="circle"
+      src={user?.avatarUrl}
+    />
   );
 }
 
-export default UsernameLink;
+export default UserAvatarLink;

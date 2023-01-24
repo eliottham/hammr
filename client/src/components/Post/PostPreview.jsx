@@ -1,22 +1,14 @@
-import { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
-import CardActionArea from "@mui/material/CardActionArea";
-import CardActions from "@mui/material/CardActions";
-import ClientContext from "../../contexts/client_context";
 import Track from "../Track/Track";
-import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import { styled } from "@mui/material/styles";
-import { useTheme } from "@mui/material/styles";
 import LikeButton from "../LikeButton";
 import Grid from "@mui/material/Grid";
 import ModeCommentOutlinedIcon from "@mui/icons-material/ModeCommentOutlined";
 import IconButton from "@mui/material/IconButton";
 import UsernameLink from "../User/UsernameLink";
+import UserAvatarLink from "../User/UserAvatarLink";
 import Util from "../../util.js";
 
 const PostPreviewDescription = styled("div")({
@@ -54,45 +46,58 @@ function PostPreview({ post }) {
       }}
       onClick={() => navigate(`/post/${post._id}`)}
     >
-      <Grid container spacing={1}>
+      <Grid container spacing={1} alignItems="center">
         <Grid
           item
           xs={1}
-          onClick={(e) => e.stopPropagation()}
-          sx={{ marginTop: "125px", width: "fit-content" }}
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
         >
+          <UserAvatarLink user={post.author} />
+        </Grid>
+        <Grid item xs={11}>
+          <UsernameLink user={post.author} />
+          <Typography
+            variant="caption"
+            alignItems="center"
+            color="text.secondary"
+          >
+            &nbsp;&bull;&nbsp;
+            {Util.getTimeFromNow(post.timestamp)}
+          </Typography>
+        </Grid>
+        <Grid item xs={1} />
+        <Grid item xs={11}>
+          <Typography variant="h5">{post.title}</Typography>
+        </Grid>
+        <Grid item xs={1}>
           <LikeButton post={post} />
         </Grid>
-        <Grid item container direction="column" xs={10} spacing={2}>
-          <Grid item>
-            <Typography variant="caption" color="text.secondary">
-              Posted by <UsernameLink author={post.author} />{" "}
-              {Util.getTimeFromNow(post.timestamp)}
-            </Typography>
-            <Typography variant="h5">{post.title}</Typography>
-          </Grid>
-          {post.spotifyTrack && (
-            <Grid item sx={{ width: "fit-content" }}>
-              <Track track={post.spotifyTrack} />
-            </Grid>
-          )}
-          {post.description && (
-            <Grid item>
+        <Grid item xs={11}>
+          <Track track={post.spotifyTrack} />
+        </Grid>
+        {post.description && (
+          <>
+            <Grid item xs={1} />
+            <Grid item xs={11}>
               <PostPreviewDescription>
                 <Typography variant="body1" color="white">
                   {post.description}
                 </Typography>
               </PostPreviewDescription>
             </Grid>
-          )}
-          <Grid item container>
-            <IconButton edge="start">
-              <ModeCommentOutlinedIcon fontSize="small" />
-              <Typography variant="caption">
-                &nbsp;{post.comments.length} Comments
-              </Typography>
-            </IconButton>
-          </Grid>
+          </>
+        )}
+        <Grid item xs={1} />
+        <Grid item xs={11}>
+          <IconButton edge="start">
+            <ModeCommentOutlinedIcon fontSize="small" />
+            <Typography variant="caption">
+              &nbsp;{post.comments.length} Comments
+            </Typography>
+          </IconButton>
         </Grid>
       </Grid>
     </Paper>

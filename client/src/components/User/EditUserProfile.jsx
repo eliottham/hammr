@@ -77,7 +77,7 @@ function EditUserProfile() {
       client.un("get-user", onGetUser);
       client.un("avatar-change", onAvatarChange);
     };
-  }, [client]);
+  }, []);
 
   function uploadAvatar() {
     inputRef.current?.click();
