@@ -99,7 +99,7 @@ function Player() {
       };
     };
     client.on("get-spotify-tokens", onGetSpotifyTokens);
-    if (client._id) {
+    if (client.user.spotifyAuthorized) {
       client.getSpotifyTokens();
     }
 

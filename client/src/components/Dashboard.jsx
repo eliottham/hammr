@@ -2,10 +2,79 @@ import React, { useState, useContext, useEffect } from "react";
 import ClientContext from "../contexts/client_context";
 import PostPreview from "./Post/PostPreview";
 import Box from "@mui/material/Box";
+import { POST_CATEGORY, POST_COMMENT_DATE_RANGE } from "../constants.js";
+import { styled } from "@mui/material/styles";
+import Paper from "@mui/material/Paper";
+import PublicIcon from "@mui/icons-material/Public";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import NewReleasesIcon from "@mui/icons-material/NewReleases";
+import Button from "@mui/material/Button";
+import ThumbUp from "@mui/icons-material/ThumbUp";
+import MenuItem from "@mui/material/MenuItem";
+import TextField from "@mui/material/TextField";
+
+const POST_SORT_FILTER = {
+  category: "post_sort_filter_category",
+  newest: "post_sort_filter_newest",
+  top: "post_sort_filter_top",
+  posted: "post_sort_filter_posted",
+};
+
+const Item = styled(Paper)(({ theme }) => ({
+  position: "relative",
+  padding: "15px",
+  borderRadius: "0.75rem",
+}));
+
+const initialNewest = localStorage.getItem(POST_SORT_FILTER.newest);
+const initialTop = localStorage.getItem(POST_SORT_FILTER.top);
 
 function Dashboard() {
   const client = useContext(ClientContext);
   const [posts, setPosts] = useState([]);
+  const [category, setCategory] = useState(
+    localStorage.getItem(POST_SORT_FILTER.category) || POST_CATEGORY.ALL
+  );
+  const [newest, setNewest] = useState(
+    initialNewest ? initialNewest === "true" : true
+  );
+  const [top, setTop] = useState(initialTop ? initialTop === "true" : false);
+  const [posted, setPosted] = useState(
+    localStorage.getItem(POST_SORT_FILTER.posted) ||
+      POST_COMMENT_DATE_RANGE.TODAY
+  );
+
+  function filterChange(params) {
+    client.getPosts(params);
+  }
+
+  function handleCategoryChange(e) {
+    localStorage.setItem(POST_SORT_FILTER.category, e.target.value);
+    setCategory(e.target.value);
+    filterChange({ category: e.target.value, newest, top, posted });
+  }
+
+  function handleNewestClick() {
+    localStorage.setItem(POST_SORT_FILTER.newest, true);
+    setNewest(true);
+    localStorage.setItem(POST_SORT_FILTER.top, false);
+    setTop(false);
+    filterChange({ category, newest: true, top: false, posted });
+  }
+
+  function handleTopClick() {
+    localStorage.setItem(POST_SORT_FILTER.top, true);
+    setTop(true);
+    localStorage.setItem(POST_SORT_FILTER.newest, false);
+    setNewest(false);
+    filterChange({ category, newest: false, top: true, posted });
+  }
+
+  function handlePostedChange(e) {
+    localStorage.setItem(POST_SORT_FILTER.posted, e.target.value);
+    setPosted(e.target.value);
+    filterChange({ category, newest, top, posted: e.target.value });
+  }
 
   useEffect(() => {
     const onGetPosts = (responsePosts) => {
@@ -13,7 +82,7 @@ function Dashboard() {
     };
     client.on("get-posts", onGetPosts);
 
-    client.getPosts();
+    client.getPosts({ category, newest, top, posted });
 
     return () => {
       client.un("get-posts", onGetPosts);
@@ -21,9 +90,68 @@ function Dashboard() {
   }, []);
 
   return (
-    <Box sx={{ margin: "10px auto 0px auto", width: "40%" }}>
+    <Box sx={{ margin: "10px auto 10px auto", width: "40%" }}>
+      <Item>
+        <Box display="flex" gap={1}>
+          <TextField
+            select
+            size="small"
+            label="Category"
+            value={category}
+            onChange={handleCategoryChange}
+          >
+            <MenuItem value={POST_CATEGORY.ALL}>
+              <Box display="flex" alignItems="center" justifyContent="flex-end">
+                <PublicIcon />
+                &emsp;
+                {POST_CATEGORY.ALL}
+              </Box>
+            </MenuItem>
+            <MenuItem value={POST_CATEGORY.FOLLOWING}>
+              <Box display="flex" alignItems="center" justifyContent="flex-end">
+                <PeopleAltIcon />
+                &emsp;
+                {POST_CATEGORY.FOLLOWING}
+              </Box>
+            </MenuItem>
+          </TextField>
+          <Button
+            size="small"
+            startIcon={<NewReleasesIcon />}
+            variant={newest ? "contained" : "outlined"}
+            onClick={handleNewestClick}
+          >
+            New
+          </Button>
+          <Button
+            size="small"
+            startIcon={<ThumbUp />}
+            variant={top ? "contained" : "outlined"}
+            onClick={handleTopClick}
+          >
+            Top
+          </Button>
+          {top && (
+            <TextField
+              select
+              size="small"
+              label="Posted"
+              value={posted}
+              onChange={handlePostedChange}
+            >
+              {Object.entries(POST_COMMENT_DATE_RANGE).map((entry) => {
+                return (
+                  <MenuItem key={entry[0]} value={entry[1]}>
+                    {entry[1]}
+                  </MenuItem>
+                );
+              })}
+            </TextField>
+          )}
+        </Box>
+      </Item>
       {posts.map((post) => (
-        <Box sx={{ marginBottom: "10px" }} key={post._id}>
+        <Box sx={{ marginTop: "10px" }} key={post._id}>
           <PostPreview post={post} />
         </Box>
       ))}

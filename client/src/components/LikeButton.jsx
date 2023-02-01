@@ -14,16 +14,17 @@ function LikeButton({ post, comment }) {
   const [likeCount, setLikeCount] = useState(0);
 
   useEffect(() => {
-    if (post && post.liked_users) {
-      setLiked(post.liked_users.includes(client.user._id));
-      setLikeCount(post.liked_users.length);
-    } else if (comment && comment.liked_users) {
-      setLiked(comment.liked_users.includes(client.user._id));
-      setLikeCount(comment.liked_users.length);
+    if (post && post.likedUsers) {
+      setLiked(post.likedUsers.includes(client.user._id));
+      setLikeCount(post.likedUsers.length);
+    } else if (comment && comment.likedUsers) {
+      setLiked(comment.likedUsers.includes(client.user._id));
+      setLikeCount(comment.likedUsers.length);
     }
   }, [post, comment]);
 
-  async function handleOnClick() {
+  async function handleOnClick(e) {
+    e.stopPropagation();
     if (liked) {
       const resultStatus = await client.dislike({ post, comment });
       if (resultStatus === 200) {

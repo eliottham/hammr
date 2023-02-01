@@ -7,9 +7,9 @@ const schema = new mongoose.Schema(
     spotifyTrack: { type: Object },
     comment: { type: String },
     post: { type: ObjectId, ref: "Post" },
-    liked_users: [{ type: ObjectId, ref: "User" }],
+    likedUsers: [{ type: ObjectId, ref: "User" }],
     edited: { type: Boolean, default: false },
-    timestamp: { type: Date, default: Date.now },
+    creationDate: { type: Date, default: Date.now },
   },
   { collection: "comments" }
 );

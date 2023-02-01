@@ -45,7 +45,7 @@ function Post() {
       client.un("get-post", onGetPost);
       client.un("delete-post", onDeletePost);
     };
-  }, [post_id]);
+  }, [client, post_id, navigate]);
 
   return (
     <Grid
@@ -76,7 +76,7 @@ function Post() {
                 color="text.secondary"
               >
                 &nbsp;&bull;&nbsp;
-                {Util.getTimeFromNow(post.timestamp)}
+                {Util.getTimeFromNow(post.creationDate)}
               </Typography>
             </Grid>
             <Grid item xs={1} />

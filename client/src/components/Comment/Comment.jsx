@@ -55,7 +55,7 @@ function Comment({ comment }) {
             >
               &nbsp;&bull;&nbsp;
               {thisComment.edited && "edited "}
-              {Util.getTimeFromNow(thisComment.timestamp)}
+              {Util.getTimeFromNow(thisComment.creationDate)}
             </Typography>
           </Typography>
         </Grid>
@@ -108,7 +108,7 @@ function Comment({ comment }) {
             >
               &nbsp;&bull;&nbsp;
               {thisComment.edited && "edited "}
-              {Util.getTimeFromNow(thisComment.timestamp)}
+              {Util.getTimeFromNow(thisComment.creationDate)}
             </Typography>
           </Typography>
         </Grid>

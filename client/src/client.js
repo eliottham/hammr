@@ -122,7 +122,8 @@ class Client extends Evt {
     try {
       const response = await axios.post("/follow", data);
       if (data.user) {
-        this.fire("get-user", response.data);
+        data.user.followers = response.data.followers;
+        this.fire("get-user", data.user);
       }
       return response.status;
     } catch (e) {
@@ -134,7 +135,8 @@ class Client extends Evt {
     try {
       const response = await axios.post("/unfollow", data);
       if (data.user) {
-        this.fire("get-user", response.data);
+        data.user.followers = response.data.followers;
+        this.fire("get-user", data.user);
       }
       return response.status;
     } catch (e) {
@@ -146,18 +148,21 @@ class Client extends Evt {
     console.log("get spotify tokens");
     try {
       const response = await axios.get("/spotify-tokens");
-      response.data.track = args.track;
-      this.fire("get-spotify-tokens", response.data);
-      return response.data;
+      if (Object.keys(response.data).length === 0) {
+        this.fire("require-spotify-authorization");
+      } else {
+        response.data.track = args?.track;
+        this.fire("get-spotify-tokens", response.data);
+      }
     } catch (e) {
       this.checkError(e);
     }
   }
 
   _checkForUpdatedSpotifyTokens({ spotifyAccessToken, track }) {
-    console.log("check for updated spotify tokens");
-    // if expired tokens needed to be refreshed on the server, fire the get-spotify-tokens event with the new token
+    // if expired tokens were refreshed on the server, fire the get-spotify-tokens event with the new token to recreate the Spotify web player
     if (spotifyAccessToken) {
+      console.log("spotify token updated");
       this.fire("get-spotify-tokens", { spotifyAccessToken, track });
     }
   }
@@ -220,9 +225,11 @@ class Client extends Evt {
   }
 
   // TODO: Add search parameters to have feed curated to user
-  async getPosts() {
+  async getPosts(params) {
     try {
-      const response = await axios.get("/posts");
+      const response = await axios.get("/posts", {
+        params,
+      });
       this.fire("get-posts", response.data);
     } catch (e) {
       this.checkError(e);

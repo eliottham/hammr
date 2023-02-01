@@ -1,5 +1,5 @@
 const Util = {
-  getTimeFromNow(timestamp) {
+  getTimeFromNow(dateString) {
     const timeUnitValues = [
       ["second", 60],
       ["minute", 60],
@@ -8,7 +8,7 @@ const Util = {
       ["month", 30],
       ["year", 12],
     ];
-    const date = new Date(timestamp);
+    const date = new Date(dateString);
     const now = new Date();
     let time = parseInt((now.getTime() - date.getTime()) / 1000);
     for (let i = 0; i < timeUnitValues.length; i++) {
@@ -21,20 +21,6 @@ const Util = {
       } else {
         return `${time} ${unit}s ago`;
       }
-      // const temp = parseInt(time / value);
-      // if (temp === 0) {
-      //   if (time > 1) {
-      //     unit = unit + "s";
-      //   }
-      //   return time ? time + " " + unit + " ago" : "a moment ago";
-      // } else if (
-      //   i < timeUnitValues.length - 1 &&
-      //   temp < timeUnitValues[i + 1][1]
-      // ) {
-      //   return time ? time + " " + unit + " ago" : "a moment ago";
-      // } else {
-      //   time = temp;
-      // }
     }
   },
 };

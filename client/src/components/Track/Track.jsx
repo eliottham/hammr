@@ -20,9 +20,11 @@ function Track({ track }) {
   useEffect(() => {
     if (client && client.spotifyPlayer) {
       client.spotifyPlayer.getCurrentState().then((state) => {
-        const sameTrack = track?.id === state.track_window.current_track.id;
-        setTrackPlaying(sameTrack);
-        setRestartTrack(!sameTrack);
+        if (state) {
+          const sameTrack = track?.id === state.track_window.current_track.id;
+          setTrackPlaying(sameTrack);
+          setRestartTrack(!sameTrack);
+        }
       });
     }
 
@@ -68,7 +70,7 @@ function Track({ track }) {
         trackImg.removeEventListener("load", onTrackImgLoad);
       }
     };
-  }, [track]);
+  }, [client, track]);
 
   function handlePlayTrackClick(e) {
     e.stopPropagation();

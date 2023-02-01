@@ -50,14 +50,8 @@ function UserProfile() {
     client.on("get-user", onGetUser);
     client.getUser(user_id);
 
-    const onGetPosts = (responsePosts) => {
-      setPosts(responsePosts);
-    };
-    client.on("get-posts", onGetPosts);
-
     return () => {
       client.un("get-user", onGetUser);
-      client.un("get-posts", onGetPosts);
     };
   }, [user_id]);
 
@@ -136,7 +130,8 @@ function UserProfile() {
               </Grid>
               <Grid item>
                 <Typography variant="caption" color="text.secondary">
-                  Member since {new Date(user.timestamp).toLocaleDateString()}
+                  Member since{" "}
+                  {new Date(user.creationDate).toLocaleDateString()}
                 </Typography>
                 <Typography variant="body1">{user.bio}</Typography>
               </Grid>

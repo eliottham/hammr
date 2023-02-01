@@ -168,28 +168,11 @@ async function getAndUpdateSpotifyTokens(user, code) {
           spotifyAccessToken: spotifyAccessToken,
           spotifyRefreshToken: spotifyRefreshToken,
         });
-        // await User.findOneAndUpdate(
-        //   {
-        //     _id: user._id,
-        //   },
-        //   {
-        //     spotifyAccessToken: spotifyAccessToken,
-        //     spotifyRefreshToken: spotifyRefreshToken,
-        //   }
-        // );
       } else if (response.data.access_token) {
         spotifyAccessToken = response.data.access_token;
         await user.updateOne({
           spotifyAccessToken: spotifyAccessToken,
         });
-        // await User.findOneAndUpdate(
-        //   {
-        //     _id: user._id,
-        //   },
-        //   {
-        //     spotifyAccessToken: spotifyAccessToken,
-        //   }
-        // );
       }
     }
     return {
@@ -264,7 +247,7 @@ function spotifyApi(args) {
       // Bad or expired token, need to re-authenticate with refresh token
       if (error.status === 401) {
         let { spotifyAccessToken } = await getAndUpdateSpotifyTokens(args.user);
-        // new tokens have been added to user in db by getSpotifyTokens(), but use returned values to avoid another db lookup for the updated user
+        // new tokens have been added to user in db by getAndUpdateSpotifyTokens(), but use returned values to avoid another db lookup for the updated user
         if (spotifyAccessToken) {
           args.spotifyAccessToken = spotifyAccessToken;
           spotifyApi(args);
@@ -366,6 +349,7 @@ app.get("/current-user", async (req, res) => {
   const currentUser = {
     _id: null,
     username: null,
+    spotifyAuthorized: false,
   };
   try {
     const token = req.cookies["token"];
@@ -374,6 +358,7 @@ app.get("/current-user", async (req, res) => {
       const user = await User.findById(new ObjectId(decoded._id));
       currentUser._id = user._id;
       currentUser.username = user.username;
+      currentUser.spotifyAuthorized = !!user.spotifyAccessToken;
     }
     res.status(200).json(currentUser);
   } catch (err) {
@@ -583,15 +568,233 @@ app.get("/post/:post_id", async (req, res) => {
   }
 });
 
-app.get("/posts", async (req, res) => {
+app.get("/posts/", async (req, res) => {
+  const { category, newest, top, posted } = req.query;
+  let user;
+  if (category === "Following") {
+    try {
+      const token = req.cookies["token"];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      user = await User.findById(new ObjectId(decoded._id));
+    } catch (err) {
+      res.status(401).send("You must be logged in to continue");
+      return;
+    }
+  }
   try {
-    const posts = await Post.find({}).lean().populate("author");
+    let posts;
+    const pipeline = [];
+    if (user) {
+      pipeline.push({
+        $match: {
+          author: {
+            $in: user.following,
+          },
+        },
+      });
+    }
+    pipeline.push({
+      $lookup: {
+        from: "users",
+        localField: "author",
+        foreignField: "_id",
+        as: "author",
+      },
+    });
+    pipeline.push({
+      $unwind: "$author",
+    });
+    if (newest === "true") {
+      pipeline.push({
+        $addFields: {
+          date: {
+            $dateFromParts: {
+              year: { $year: "$creationDate" },
+              month: { $month: "$creationDate" },
+              day: { $dayOfMonth: "$creationDate" },
+            },
+          },
+        },
+      });
+      pipeline.push({
+        $sort: {
+          date: -1,
+        },
+      });
+    } else if (top === "true") {
+      if (posted === "All Time") {
+        pipeline.push({
+          $sort: {
+            likedUsers: -1,
+          },
+        });
+      } else {
+        let startDate = new Date();
+        let endDate = new Date();
+        endDate.setDate(endDate.getDate() + 1);
+        if (posted === "This Year") {
+          startDate.setFullYear(new Date().getFullYear() - 1);
+        } else if (posted === "This Month") {
+          startDate.setMonth(startDate.getMonth() - 1);
+        } else if (posted === "This Week") {
+          startDate.setDate(startDate.getDate() - 7);
+        }
+        // const ISOStringTime = "T00:00:00.000+00:00";
+        const ISOStringTime = "T00:00:00.000Z";
+        startDate = startDate.toISOString().substring(0, 10) + ISOStringTime;
+        endDate = endDate.toISOString().substring(0, 10) + ISOStringTime;
+        pipeline.push({
+          $match: {
+            creationDate: {
+              $gte: new Date(startDate),
+              $lt: new Date(endDate),
+            },
+          },
+        });
+        pipeline.push({
+          $sort: {
+            likedUsers: -1,
+          },
+        });
+      }
+    }
+    posts = await Post.aggregate(pipeline);
     res.status(200).json(posts);
   } catch (err) {
     console.log(err);
     res.status(500).send(err);
   }
 });
+
+// app.get("/posts/", async (req, res) => {
+//   const { category, newest, top, posted } = req.query;
+//   let user;
+//   if (category === "Following") {
+//     try {
+//       const token = req.cookies["token"];
+//       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+//       user = await User.findById(new ObjectId(decoded._id));
+//     } catch (err) {
+//       req.status(401).send("You must be logged in to continue");
+//     }
+//   }
+//   try {
+//     let posts;
+//     if (user) {
+//       posts = await Post.aggregate()
+//         .match({
+//           author: {
+//             $in: user.following,
+//           },
+//         })
+//         .lookup({
+//           from: "users",
+//           localField: "author",
+//           foreignField: "_id",
+//           as: "author",
+//         })
+//         .unwind("author");
+//       // .addFields({
+//       //   date: {
+//       //     $dateFromParts: {
+//       //       year: { $year: "$creationDate" },
+//       //       month: { $month: "$creationDate" },
+//       //       day: { $dayOfMonth: "$creationDate" },
+//       //     },
+//       //   },
+//       // })
+//       // .sort({ date: -1, likedUsers: -1 });
+//     } else {
+//       posts = await Post.aggregate()
+//         .lookup({
+//           from: "users",
+//           localField: "author",
+//           foreignField: "_id",
+//           as: "author",
+//         })
+//         .unwind("author");
+//     }
+//     if (newest) {
+//       posts = await posts
+//         .addFields({
+//           date: {
+//             $dateFromParts: {
+//               year: { $year: "$creationDate" },
+//               month: { $month: "$creationDate" },
+//               day: { $dayOfMonth: "$creationDate" },
+//             },
+//           },
+//         })
+//         .sort({ date: -1 });
+//     } else if (top) {
+//       if (posted === "All Time") {
+//         posts = await posts.sort({ likedUsers: -1 });
+//       } else {
+//         let startDate = new Date();
+//         let endDate = new Date();
+//         endDate.setDate(endDate.getDate() + 1);
+//         if (posted === "This Year") {
+//           startDate.setFullYear(new Date().getFullYear() - 1);
+//         } else if (posted === "This Month") {
+//           startDate.setMonth(startDate.getMonth() - 1);
+//         } else if (posted === "This Week") {
+//           startDate.setDate(startDate.getDate() - 7);
+//         }
+//         const ISOStringTime = "T00:00:00.000+00:00";
+//         startDate = startDate.toISOString().substring(0, 10) + ISOStringTime;
+//         endDate = endDate.toISOString().substring(0, 10) + ISOStringTime;
+//         posts = await posts
+//           .match({
+//             creationDate: {
+//               $gte: startDate,
+//               $lt: endDate,
+//             },
+//           })
+//           .sort({ likedUsers: -1 });
+//       }
+//     }
+
+//     res.status(200).json(posts);
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).send(err);
+//   }
+// });
+
+app.get(
+  "/posts/following",
+  useAuth(async (req, res, user) => {
+    try {
+      const posts = await Post.aggregate()
+        .match({
+          author: {
+            $in: user.following,
+          },
+        })
+        .lookup({
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "author",
+        })
+        .unwind("author")
+        .addFields({
+          date: {
+            $dateFromParts: {
+              year: { $year: "$creationDate" },
+              month: { $month: "$creationDate" },
+              day: { $dayOfMonth: "$creationDate" },
+            },
+          },
+        })
+        .sort({ date: -1, likedUsers: -1 });
+      res.status(200).json(posts);
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
 
 app.post(
   "/comment",
@@ -631,7 +834,7 @@ app.put(
     try {
       if (user._id.equals(new ObjectId(originalComment.author._id))) {
         const data = {
-          timestamp: new Date().toISOString(),
+          creationDate: new Date().toISOString(),
           edited: true,
         };
         if (spotifyTrack?.id !== originalComment.spotifyTrack?.id) {
@@ -690,14 +893,14 @@ app.post(
           $push: { liked_posts: new ObjectId(post._id) },
         });
         await Post.findByIdAndUpdate(post._id, {
-          $push: { liked_users: user._id },
+          $push: { likedUsers: user._id },
         });
       } else if (comment) {
         await user.updateOne({
           $push: { liked_comments: new ObjectId(comment._id) },
         });
         await Comment.findByIdAndUpdate(comment._id, {
-          $push: { liked_users: user._id },
+          $push: { likedUsers: user._id },
         });
       }
       res.sendStatus(200);
@@ -718,14 +921,14 @@ app.post(
           $pull: { liked_posts: new ObjectId(post._id) },
         });
         await Post.findByIdAndUpdate(post._id, {
-          $pull: { liked_users: user._id },
+          $pull: { likedUsers: user._id },
         });
       } else if (comment) {
         await user.updateOne({
           $pull: { liked_comments: new ObjectId(comment._id) },
         });
         await Comment.findByIdAndUpdate(comment._id, {
-          $pull: { liked_users: user._id },
+          $pull: { likedUsers: user._id },
         });
       }
       res.sendStatus(200);

@@ -65,7 +65,7 @@ function PostPreview({ post }) {
             color="text.secondary"
           >
             &nbsp;&bull;&nbsp;
-            {Util.getTimeFromNow(post.timestamp)}
+            {Util.getTimeFromNow(post.creationDate)}
           </Typography>
         </Grid>
         <Grid item xs={1} />

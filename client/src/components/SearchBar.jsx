@@ -4,6 +4,7 @@ import _debounce from "lodash/debounce";
 import ClientContext from "../contexts/client_context";
 import TrackListItem from "./Track/TrackListItem";
 import Stack from "@mui/material/Stack";
+import Box from "@mui/material/Box";
 
 function SearchBar({
   customHandleTrackOnClick,
@@ -19,18 +20,6 @@ function SearchBar({
   const [mouseOverTrack, setMouseOverTrack] = useState(false);
 
   const debounceSearch = useCallback(_debounce(search, 300), []);
-
-  // useState(() => {
-  // const onSpotifySearch = ({ tracks }) => {
-  // 	setTracks(tracks.slice(0, Math.min(tracks.length, 5)));
-  // 	setCachedTracks(tracks.slice(0, Math.min(tracks.length, 5)));
-  // };
-  // client.on('spotify-search', onSpotifySearch);
-
-  // return () => {
-  // 	client.un('spotify-search');
-  // };
-  // }, []);
 
   async function search(q) {
     if (q) {
@@ -97,7 +86,14 @@ function SearchBar({
         autoComplete="off"
         autoFocus={!!initialQuery}
       />
-      <List sx={{ width: "100%", position: "absolute", marginTop: "35px" }}>
+      <List
+        sx={{
+          width: "100%",
+          position: "absolute",
+          marginTop: "33px",
+          zIndex: 999,
+        }}
+      >
         {tracks.map((track, i) => {
           return (
             <React.Fragment key={track.id}>

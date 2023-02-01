@@ -38,7 +38,7 @@ function NavBar() {
         borderBottom: "1px solid #282828",
         right: 0,
         padding: "10px 20px 9px 20px",
-        zIndex: 999,
+        zIndex: 998,
       }}
       container
       alignItems="flex-start"
