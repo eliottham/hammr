@@ -666,101 +666,6 @@ app.get("/posts/", async (req, res) => {
   }
 });
 
-// app.get("/posts/", async (req, res) => {
-//   const { category, newest, top, posted } = req.query;
-//   let user;
-//   if (category === "Following") {
-//     try {
-//       const token = req.cookies["token"];
-//       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-//       user = await User.findById(new ObjectId(decoded._id));
-//     } catch (err) {
-//       req.status(401).send("You must be logged in to continue");
-//     }
-//   }
-//   try {
-//     let posts;
-//     if (user) {
-//       posts = await Post.aggregate()
-//         .match({
-//           author: {
-//             $in: user.following,
-//           },
-//         })
-//         .lookup({
-//           from: "users",
-//           localField: "author",
-//           foreignField: "_id",
-//           as: "author",
-//         })
-//         .unwind("author");
-//       // .addFields({
-//       //   date: {
-//       //     $dateFromParts: {
-//       //       year: { $year: "$creationDate" },
-//       //       month: { $month: "$creationDate" },
-//       //       day: { $dayOfMonth: "$creationDate" },
-//       //     },
-//       //   },
-//       // })
-//       // .sort({ date: -1, likedUsers: -1 });
-//     } else {
-//       posts = await Post.aggregate()
-//         .lookup({
-//           from: "users",
-//           localField: "author",
-//           foreignField: "_id",
-//           as: "author",
-//         })
-//         .unwind("author");
-//     }
-//     if (newest) {
-//       posts = await posts
-//         .addFields({
-//           date: {
-//             $dateFromParts: {
-//               year: { $year: "$creationDate" },
-//               month: { $month: "$creationDate" },
-//               day: { $dayOfMonth: "$creationDate" },
-//             },
-//           },
-//         })
-//         .sort({ date: -1 });
-//     } else if (top) {
-//       if (posted === "All Time") {
-//         posts = await posts.sort({ likedUsers: -1 });
-//       } else {
-//         let startDate = new Date();
-//         let endDate = new Date();
-//         endDate.setDate(endDate.getDate() + 1);
-//         if (posted === "This Year") {
-//           startDate.setFullYear(new Date().getFullYear() - 1);
-//         } else if (posted === "This Month") {
-//           startDate.setMonth(startDate.getMonth() - 1);
-//         } else if (posted === "This Week") {
-//           startDate.setDate(startDate.getDate() - 7);
-//         }
-//         const ISOStringTime = "T00:00:00.000+00:00";
-//         startDate = startDate.toISOString().substring(0, 10) + ISOStringTime;
-//         endDate = endDate.toISOString().substring(0, 10) + ISOStringTime;
-//         posts = await posts
-//           .match({
-//             creationDate: {
-//               $gte: startDate,
-//               $lt: endDate,
-//             },
-//           })
-//           .sort({ likedUsers: -1 });
-//       }
-//     }
-
-//     res.status(200).json(posts);
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).send(err);
-//   }
-// });
-
 app.get(
   "/posts/following",
   useAuth(async (req, res, user) => {
@@ -862,6 +767,65 @@ app.put(
     }
   })
 );
+
+app.get("/comments", async (req, res, user) => {
+  const { post_id, user_id } = req.query; // top, newest, bottom, oldest
+  const sortBy = req.query.sortBy || "top";
+  const pipeline = [];
+  try {
+    if (post_id) {
+      pipeline.push({
+        $match: {
+          post: new ObjectId(post_id),
+        },
+      });
+    } else if (user_id) {
+      pipeline.push({
+        $match: {
+          author: new ObjectId(user_id),
+        },
+      });
+    }
+    pipeline.push({
+      $lookup: {
+        from: "users",
+        localField: "author",
+        foreignField: "_id",
+        as: "author",
+      },
+    });
+    pipeline.push({
+      $unwind: "$author",
+    });
+    if (sortBy === "top" || sortBy === "bottom") {
+      pipeline.push({
+        $sort: { likedUsers: sortBy === "top" ? -1 : 1 },
+      });
+    } else if (sortBy === "newest" || sortBy === "oldest") {
+      pipeline.push({
+        $addFields: {
+          date: {
+            $dateFromParts: {
+              year: { $year: "$creationDate" },
+              month: { $month: "$creationDate" },
+              day: { $dayOfMonth: "$creationDate" },
+            },
+          },
+        },
+      });
+      pipeline.push({
+        $sort: {
+          date: sortBy === "newest" ? -1 : 1,
+        },
+      });
+    }
+    const comments = await Comment.aggregate(pipeline);
+    res.status(200).json(comments);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
 
 app.delete(
   "/comment/:comment_id",

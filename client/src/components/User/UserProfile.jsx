@@ -13,6 +13,7 @@ import ButtonGroup from "@mui/material/ButtonGroup";
 import FollowButton from "../FollowButton";
 import PostPreview from "../Post/PostPreview";
 import Comment from "../Comment/Comment";
+import PostCommentSort from "../Post/PostCommentSort";
 
 const DISPLAY_CATEGORIES = {
   POST: "post",

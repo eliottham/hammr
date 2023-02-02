@@ -14,10 +14,10 @@ import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 
 const POST_SORT_FILTER = {
-  category: "post_sort_filter_category",
-  newest: "post_sort_filter_newest",
-  top: "post_sort_filter_top",
-  posted: "post_sort_filter_posted",
+  CATEGORY: "post_sort_filter_category",
+  NEWEST: "post_sort_filter_newest",
+  TOP: "post_sort_filter_top",
+  POSTED: "post_sort_filter_posted",
 };
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -26,21 +26,21 @@ const Item = styled(Paper)(({ theme }) => ({
   borderRadius: "0.75rem",
 }));
 
-const initialNewest = localStorage.getItem(POST_SORT_FILTER.newest);
-const initialTop = localStorage.getItem(POST_SORT_FILTER.top);
+const initialNewest = localStorage.getItem(POST_SORT_FILTER.NEWEST);
+const initialTop = localStorage.getItem(POST_SORT_FILTER.TOP);
 
 function Dashboard() {
   const client = useContext(ClientContext);
   const [posts, setPosts] = useState([]);
   const [category, setCategory] = useState(
-    localStorage.getItem(POST_SORT_FILTER.category) || POST_CATEGORY.ALL
+    localStorage.getItem(POST_SORT_FILTER.CATEGORY) || POST_CATEGORY.ALL
   );
   const [newest, setNewest] = useState(
     initialNewest ? initialNewest === "true" : true
   );
   const [top, setTop] = useState(initialTop ? initialTop === "true" : false);
   const [posted, setPosted] = useState(
-    localStorage.getItem(POST_SORT_FILTER.posted) ||
+    localStorage.getItem(POST_SORT_FILTER.POSTED) ||
       POST_COMMENT_DATE_RANGE.TODAY
   );
 
@@ -49,29 +49,29 @@ function Dashboard() {
   }
 
   function handleCategoryChange(e) {
-    localStorage.setItem(POST_SORT_FILTER.category, e.target.value);
+    localStorage.setItem(POST_SORT_FILTER.CATEGORY, e.target.value);
     setCategory(e.target.value);
     filterChange({ category: e.target.value, newest, top, posted });
   }
 
   function handleNewestClick() {
-    localStorage.setItem(POST_SORT_FILTER.newest, true);
+    localStorage.setItem(POST_SORT_FILTER.NEWEST, true);
     setNewest(true);
-    localStorage.setItem(POST_SORT_FILTER.top, false);
+    localStorage.setItem(POST_SORT_FILTER.TOP, false);
     setTop(false);
     filterChange({ category, newest: true, top: false, posted });
   }
 
   function handleTopClick() {
-    localStorage.setItem(POST_SORT_FILTER.top, true);
+    localStorage.setItem(POST_SORT_FILTER.TOP, true);
     setTop(true);
-    localStorage.setItem(POST_SORT_FILTER.newest, false);
+    localStorage.setItem(POST_SORT_FILTER.NEWEST, false);
     setNewest(false);
     filterChange({ category, newest: false, top: true, posted });
   }
 
   function handlePostedChange(e) {
-    localStorage.setItem(POST_SORT_FILTER.posted, e.target.value);
+    localStorage.setItem(POST_SORT_FILTER.POSTED, e.target.value);
     setPosted(e.target.value);
     filterChange({ category, newest, top, posted: e.target.value });
   }

@@ -14,6 +14,7 @@ import Typography from "@mui/material/Typography";
 import Util from "../../util.js";
 import UsernameLink from "../User/UsernameLink";
 import UserAvatarLink from "../User/UserAvatarLink";
+import PostCommentSort from "./PostCommentSort";
 
 const Item = styled(Paper)(({ theme }) => ({
   position: "relative",
@@ -28,13 +29,21 @@ function Post() {
   const navigate = useNavigate();
   const { post_id } = useParams();
   const [post, setPost] = useState({});
+  const [comments, setComments] = useState([]);
 
   useEffect(() => {
     const onGetPost = (responsePost) => {
       setPost(responsePost);
+      setComments(responsePost.comments);
     };
     client.on("get-post", onGetPost);
     client.getPost(post_id);
+
+    const onGetComments = (responseComments) => {
+      setComments(responseComments);
+    };
+    // fired by PostCommentSort
+    client.on("get-comments", onGetComments);
 
     const onDeletePost = () => {
       navigate("/");
@@ -43,6 +52,7 @@ function Post() {
 
     return () => {
       client.un("get-post", onGetPost);
+      client.un("get-comments", onGetComments);
       client.un("delete-post", onDeletePost);
     };
   }, [client, post_id, navigate]);
@@ -105,14 +115,16 @@ function Post() {
           <CreateComment post_id={post_id} />
         </Item>
       </Grid>
-      {post.comments?.length ? (
+      {comments?.length ? (
         <Grid item>
           <Item>
-            {post.comments.map((comment, i) => {
+            <PostCommentSort post_id={post_id} />
+            <Box mb="15px" />
+            {comments.map((comment, i) => {
               return (
-                <Box key={comment._id} ml="-30px">
+                <Box key={comment._id}>
                   <Comment comment={comment} />
-                  {i < post.comments.length - 1 ? (
+                  {i < comments.length - 1 ? (
                     <Divider sx={{ margin: "5px 0 15px 30px" }} />
                   ) : null}
                 </Box>
