@@ -6,6 +6,7 @@ import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import IconButton from "@mui/material/IconButton";
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
+import AddToQueueButton from "../Queue/AddToQueueButton";
 
 function Track({ track }) {
   const client = useContext(ClientContext);
@@ -31,7 +32,9 @@ function Track({ track }) {
     const colorThief = new window.ColorThief();
     let trackImg;
     const onTrackImgLoad = () => {
-      setTrackImgColor(colorThief.getColor(trackImg));
+      const color = colorThief.getColor(trackImg);
+      track.color = color;
+      setTrackImgColor(color);
     };
     if (track) {
       trackImg = document.createElement("img");
@@ -39,7 +42,10 @@ function Track({ track }) {
       trackImg.setAttribute("src", track.album.images[2].url);
       trackImg.setAttribute("crossorigin", "anonymous");
       if (trackImg.complete) {
-        setTrackImgColor(colorThief.getColor(trackImg));
+        // setTrackImgColor(colorThief.getColor(trackImg));
+        const color = colorThief.getColor(trackImg);
+        track.color = color;
+        setTrackImgColor(color);
       } else {
         trackImg.addEventListener("load", onTrackImgLoad);
       }
@@ -91,7 +97,6 @@ function Track({ track }) {
       sx={{
         backgroundColor: `rgba(${trackImgColor[0]}, ${trackImgColor[1]}, ${trackImgColor[2]}, 0.7)`,
         borderRadius: "0.75rem",
-        width: "572px",
         height: "160px",
         boxShadow: "-5px 5px 5px rgba(0, 0, 0, 0.35)",
       }}
@@ -114,8 +119,8 @@ function Track({ track }) {
           }}
         />
       </Grid>
-      <Grid item xs={7} sx={{ paddingLeft: "20px" }}>
-        <Typography gutterBottom variant="h5">
+      <Grid item xs={6} sx={{ paddingLeft: "20px" }}>
+        <Typography gutterBottom variant="h6">
           {track?.name}
         </Typography>
         <Typography
@@ -127,11 +132,9 @@ function Track({ track }) {
           {track?.artists[0].name}
         </Typography>
       </Grid>
-      <Grid item xs={2} alignItems="flex-end">
-        <IconButton
-          onClick={handlePlayTrackClick}
-          style={{ margin: "auto 0 auto 0" }}
-        >
+      <Grid item xs={3}>
+        <AddToQueueButton track={track} />
+        <IconButton onClick={handlePlayTrackClick}>
           {trackPlaying ? (
             <PauseCircleIcon fontSize="large" />
           ) : (

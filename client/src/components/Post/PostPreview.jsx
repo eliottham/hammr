@@ -75,19 +75,21 @@ function PostPreview({ post }) {
         <Grid item xs={1}>
           <LikeButton post={post} />
         </Grid>
-        <Grid item xs={11}>
+        <Grid item xs={10}>
           <Track track={post.spotifyTrack} />
         </Grid>
+        <Grid item xs={1} />
         {post.description && (
           <>
             <Grid item xs={1} />
-            <Grid item xs={11}>
+            <Grid item xs={10}>
               <PostPreviewDescription>
                 <Typography variant="body1" color="white">
                   {post.description}
                 </Typography>
               </PostPreviewDescription>
             </Grid>
+            <Grid item xs={1} />
           </>
         )}
         <Grid item xs={1} />

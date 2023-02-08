@@ -20,11 +20,15 @@ import EditUserProfile from "./components/User/EditUserProfile";
 import Alert from "@mui/material/Alert";
 import Slide from "@mui/material/Slide";
 import Box from "@mui/material/Box";
+import Queue from "./components/Queue/Queue";
 
 const client = new Client();
 
 const theme = createTheme({
   palette: {
+    background: {
+      default: "black",
+    },
     primary: {
       main: "#CCCCFF",
     },
@@ -116,7 +120,7 @@ const App = () => {
   }
 
   return (
-    <Box>
+    <Box height="100%">
       <ClientProvider value={client}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
@@ -139,8 +143,10 @@ const App = () => {
             disableScrollLock
           />
           <NavBar />
+          <Queue />
           <Box
             sx={{
+              paddingTop: "60px",
               paddingBottom: "80px",
             }}
           >

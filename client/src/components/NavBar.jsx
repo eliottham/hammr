@@ -32,7 +32,7 @@ function NavBar() {
   return (
     <Grid
       sx={{
-        position: "sticky",
+        position: "fixed",
         top: 0,
         backgroundColor: "neutral.main",
         borderBottom: "1px solid #282828",

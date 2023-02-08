@@ -9,6 +9,10 @@ function TrackListItem({ track, onClick, mouseOver, style }) {
     backgroundColor: "neutral.main",
     "&:hover": {
       backgroundColor: "primary.main",
+      color: "neutral.main",
+      ".MuiListItemText-secondary": {
+        color: "neutral.main",
+      },
     },
     zIndex: 99,
   };

@@ -96,15 +96,17 @@ function Post() {
             <Grid item xs={1}>
               <LikeButton post={post} />
             </Grid>
-            <Grid item xs={11}>
+            <Grid item xs={10}>
               <Track track={post.spotifyTrack} />
             </Grid>
+            <Grid item xs={1} />
             {post.description && (
               <>
                 <Grid item xs={1} />
-                <Grid item xs={11}>
+                <Grid item xs={10}>
                   <Typography variant="body1">{post.description}</Typography>
                 </Grid>
+                <Grid item xs={1} />
               </>
             )}
           </Grid>
