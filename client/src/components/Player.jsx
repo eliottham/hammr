@@ -48,6 +48,7 @@ function Player() {
       script.async = true;
       document.body.appendChild(script);
       window.onSpotifyWebPlaybackSDKReady = () => {
+        console.log("player initialized");
         client.spotifyPlayer = new window.Spotify.Player({
           name: "Zam Web Player",
           getOAuthToken: async (cb) => {
@@ -55,9 +56,10 @@ function Player() {
           },
         });
         client.spotifyPlayer.addListener("ready", ({ device_id }) => {
+          console.log("player ready");
           client.spotifyDeviceId = device_id;
           if (track) {
-            client.spotifyPlayTrack(track, device_id);
+            client.spotifyPlayTrack(track);
           }
         });
         client.spotifyPlayer.addListener(
@@ -135,12 +137,16 @@ function Player() {
   }
 
   function handlePlayback() {
-    setPaused(!paused);
-    if (paused) {
-      client.spotifyPlayer.resume();
-    } else {
-      client.spotifyPlayer.pause();
-    }
+    client.spotifyPlayer.getCurrentState().then((state) => {
+      if (state) {
+        setPaused(!paused);
+        if (paused) {
+          client.spotifyPlayer.resume();
+        } else {
+          client.spotifyPlayer.pause();
+        }
+      }
+    });
   }
 
   function handlePositionChange(e, newValue) {
@@ -178,7 +184,7 @@ function Player() {
       <Grid item xs={6}>
         <Stack direction="column">
           <Stack direction="row" sx={{ margin: "0 auto 0 auto" }}>
-            <IconButton>
+            <IconButton onClick={() => client.fire("previous-button-click")}>
               <SkipPreviousIcon fontSize="large" />
             </IconButton>
             <IconButton onClick={handlePlayback}>
@@ -188,7 +194,7 @@ function Player() {
                 <PauseCircleIcon fontSize="large" />
               )}
             </IconButton>
-            <IconButton>
+            <IconButton onClick={() => client.fire("next-button-click")}>
               <SkipNextIcon fontSize="large" />
             </IconButton>
           </Stack>

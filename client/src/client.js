@@ -178,12 +178,14 @@ class Client extends Evt {
     }
   }
 
-  async spotifyPlayTrack(track, deviceId) {
+  async spotifyPlayTrack(track, queueTrackIndex) {
+    const deviceId = this.spotifyDeviceId;
     if (!deviceId) {
       this.getSpotifyTokens({ track });
       return;
     }
     try {
+      this.queueTrackIndex = queueTrackIndex;
       const response = await axios.post("/spotify-play-track", {
         track,
         deviceId,
@@ -303,6 +305,14 @@ class Client extends Evt {
     } catch (e) {
       this.checkError(e);
     }
+  }
+
+  setQueueTrackIndex(queueTrackIndex) {
+    this.queueTrackIndex = queueTrackIndex;
+  }
+
+  getQueueTrackIndex() {
+    return this.queueTrackIndex;
   }
 }
 

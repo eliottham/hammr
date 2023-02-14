@@ -59,7 +59,7 @@ function SearchBar({
     if (customHandleTrackOnClick) {
       customHandleTrackOnClick(track);
     } else {
-      client.spotifyPlayTrack(track, client.spotifyDeviceId);
+      client.spotifyPlayTrack(track);
     }
     setQuery(track.name);
     setTracks([]);

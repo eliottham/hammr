@@ -57,7 +57,7 @@ function Track({ track }) {
       position,
       duration,
     }) => {
-      if (track.id === current_track.id) {
+      if (track.id === current_track.id && isNaN(client.queueTrackIndex)) {
         setTrackPlaying(!paused);
         setRestartTrack(false);
         if (position === duration) {
@@ -81,7 +81,7 @@ function Track({ track }) {
   function handlePlayTrackClick(e) {
     e.stopPropagation();
     if (restartTrack) {
-      client.spotifyPlayTrack(track, client.spotifyDeviceId);
+      client.spotifyPlayTrack(track);
     } else if (trackPlaying) {
       client.spotifyPlayer.pause();
     } else {

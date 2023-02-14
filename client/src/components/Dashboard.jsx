@@ -12,6 +12,7 @@ import Button from "@mui/material/Button";
 import ThumbUp from "@mui/icons-material/ThumbUp";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
+import AddToQueueButton from "./Queue/AddToQueueButton";
 
 const POST_SORT_FILTER = {
   CATEGORY: "post_sort_filter_category",

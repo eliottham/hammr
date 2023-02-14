@@ -1,25 +1,33 @@
 import React, { useCallback, useState, useContext, useEffect } from "react";
-import Grid from "@mui/material/Grid";
 import ClientContext from "../../contexts/client_context";
-import AddIcon from "@mui/icons-material/Add";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
-import HomeIcon from "@mui/icons-material/Home";
-import LogoutIcon from "@mui/icons-material/Logout";
-import Button from "@mui/material/Button";
-import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import QueueMusicIcon from "@mui/icons-material/QueueMusic";
 import QueueTrack from "./QueueTrack";
 import List from "@mui/material/List";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 
 function Queue() {
   const client = useContext(ClientContext);
   const [tracks, setTracks] = useState([]);
 
   useEffect(() => {
+    const onSpotifyPlayerStateChanged = ({
+      paused,
+      current_track,
+      position,
+      duration,
+    }) => {
+      const nextIndex = client.queueTrackIndex + 1;
+      if (position === duration && nextIndex < tracks.length) {
+        client.spotifyPlayTrack(tracks[nextIndex], nextIndex);
+      }
+    };
+    client.on("spotify-player-state-changed", onSpotifyPlayerStateChanged);
+
     const onAddToQueue = (t) => {
       setTracks(tracks.concat(t));
     };
@@ -31,11 +39,40 @@ function Queue() {
     };
     client.on("remove-from-queue", onRemoveFromQueue);
 
+    const onPreviousButtonClick = () => {
+      const previousIndex = client.queueTrackIndex - 1;
+      if (previousIndex >= 0 && previousIndex < tracks.length) {
+        client.spotifyPlayTrack(tracks[previousIndex], previousIndex);
+      }
+    };
+    client.on("previous-button-click", onPreviousButtonClick);
+
+    const onNextButtonClick = () => {
+      const nextIndex = client.queueTrackIndex + 1;
+      if (nextIndex < tracks.length) {
+        client.spotifyPlayTrack(tracks[nextIndex], nextIndex);
+      }
+    };
+    client.on("next-button-click", onNextButtonClick);
+
     return () => {
+      client.un("spotify-player-state-changed", onSpotifyPlayerStateChanged);
       client.un("add-to-queue", onAddToQueue);
       client.un("remove-from-queue", onRemoveFromQueue);
+      client.un("previous-button-click", onPreviousButtonClick);
+      client.un("next-button-click", onNextButtonClick);
     };
   }, [tracks]);
+
+  function handleRemoveAllClick() {
+    setTracks([]);
+  }
+
+  function handlePlayQueueClick() {
+    if (tracks.length > 0) {
+      client.spotifyPlayTrack(tracks[0], 0);
+    }
+  }
 
   return (
     <Box
@@ -43,33 +80,56 @@ function Queue() {
         width: "350px",
         position: "fixed",
         backgroundColor: "neutral.main",
-        // backgroundColor: "black",
         marginTop: "60px",
         height: "calc(100vh - 140px)",
         borderRight: "1px solid #282828",
-        // borderRight: "1px solid",
-        // borderColor: "primary.main",
       }}
     >
-      <Box width="100%" textAlign="center">
+      <Box textAlign="center">
         <Box
           borderBottom="1px solid"
           borderColor="#282828"
           display="flex"
-          flexDirection="row"
           padding="5px"
           alignItems="center"
           justifyContent="center"
+          height="50px"
         >
-          <QueueMusicIcon />
-          &nbsp;<Typography variant="subtitle2">Queue</Typography>
+          <Box flex="1" />
+          <Box flex="1" display="flex" justifyContent="center">
+            <QueueMusicIcon />
+            &nbsp;<Typography variant="subtitle2">Queue</Typography>
+          </Box>
+          <Box flex="1" display="flex" justifyContent="flex-end">
+            <Tooltip title="Remove all">
+              <IconButton onClick={handleRemoveAllClick}>
+                <HighlightOffIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Box pr="13px">
+              <Tooltip title="Play queue">
+                <IconButton onClick={handlePlayQueueClick}>
+                  <PlayCircleOutlineIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Box>
         </Box>
         {tracks.length ? (
-          <List disablePadding>
-            {tracks.map((track, i) => {
-              return <QueueTrack key={track.id} track={track} index={i} />;
-            })}
-          </List>
+          <Box
+            sx={{
+              height: "calc(100vh - 140px - 50px)",
+              overflowY: "auto",
+            }}
+          >
+            <List disablePadding>
+              {tracks.map((track, i) => {
+                return (
+                  <QueueTrack key={track.id + i} track={track} queueIndex={i} />
+                );
+              })}
+            </List>
+          </Box>
         ) : (
           <Typography variant="subtitle1">No tracks in queue</Typography>
         )}

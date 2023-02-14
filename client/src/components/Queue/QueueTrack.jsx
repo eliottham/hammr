@@ -19,11 +19,11 @@ const typographyStyle = {
   WebkitBoxOrient: "vertical",
 };
 
-function QueueTrack({ track, index }) {
+function QueueTrack({ track, queueIndex }) {
   const client = useContext(ClientContext);
   const [trackColor, setTrackColor] = useState(track.color || [0, 0, 0]);
   const [trackPlaying, setTrackPlaying] = useState(false);
-  const [restartTrack, setRestartTrack] = useState(true);
+  const [active, setActive] = useState(false);
 
   useEffect(() => {
     let trackImg;
@@ -52,15 +52,11 @@ function QueueTrack({ track, index }) {
       position,
       duration,
     }) => {
-      if (track.id === current_track.id) {
+      if (client.queueTrackIndex === queueIndex) {
+        setActive(true);
         setTrackPlaying(!paused);
-        setRestartTrack(false);
-        if (position === duration) {
-          setRestartTrack(true);
-          setTrackPlaying(false);
-        }
       } else {
-        setRestartTrack(true);
+        setActive(false);
         setTrackPlaying(false);
       }
     };
@@ -72,15 +68,15 @@ function QueueTrack({ track, index }) {
         trackImg.removeEventListener("load", onTrackImgLoad);
       }
     };
-  }, []);
+  }, [track, queueIndex]);
 
   function handleRemoveFromQueueClick() {
-    client.fire("remove-from-queue", index);
+    client.fire("remove-from-queue", queueIndex);
   }
 
   function handlePlayTrackClick() {
-    if (restartTrack) {
-      client.spotifyPlayTrack(track, client.spotifyDeviceId);
+    if (!active) {
+      client.spotifyPlayTrack(track, queueIndex);
     } else if (trackPlaying) {
       client.spotifyPlayer.pause();
     } else {
@@ -96,7 +92,7 @@ function QueueTrack({ track, index }) {
         borderTop: "1px solid #282828",
         backgroundColor: `rgba(${trackColor[0]}, ${trackColor[1]}, ${trackColor[2]}, 0.7)`,
         border: "2px solid",
-        borderColor: trackPlaying ? "primary.main" : `rgba(0, 0, 0, 0)`,
+        borderColor: active ? "primary.main" : `rgba(0, 0, 0, 0)`,
         "&:hover": {
           backgroundColor: "primary.main",
           color: "neutral.main",
@@ -110,7 +106,7 @@ function QueueTrack({ track, index }) {
       }}
     >
       <Typography pr="16px" variant="button">
-        {index + 1}
+        {queueIndex + 1}
       </Typography>
       <ListItemAvatar>
         <Avatar variant="square" src={track?.album.images[0].url} />
