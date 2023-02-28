@@ -65,6 +65,7 @@ class Client extends Evt {
         this.fire("get-current-user", {
           _id: null,
           username: null,
+          avatarUrl: null,
         });
       } else {
         this.checkError(e);
@@ -305,14 +306,6 @@ class Client extends Evt {
     } catch (e) {
       this.checkError(e);
     }
-  }
-
-  setQueueTrackIndex(queueTrackIndex) {
-    this.queueTrackIndex = queueTrackIndex;
-  }
-
-  getQueueTrackIndex() {
-    return this.queueTrackIndex;
   }
 }
 

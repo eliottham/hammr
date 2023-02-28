@@ -91,13 +91,18 @@ const App = () => {
     client.on("get-current-user", onGetCurrentUser);
     client.getCurrentUser();
 
-    const onLogin = (user) => {
+    const onLogin = () => {
       console.log("on login");
       setOpenLoginDialog(false);
       console.log("navigate");
       navigate(0);
     };
     client.on("login", onLogin);
+
+    const onLogout = () => {
+      navigate("/");
+    };
+    client.on("logout", onLogout);
 
     const onRequireAuthentication = () => {
       setOpenLoginDialog(true);
@@ -136,6 +141,7 @@ const App = () => {
     return () => {
       client.un("get-current-user", onGetCurrentUser);
       client.un("login", onLogin);
+      client.un("logout", onLogout);
       client.un("require-authentication", onRequireAuthentication);
       client.un("login-link-click", onRequireAuthentication);
       client.un("register-link-click", onRegisterLinkClick);

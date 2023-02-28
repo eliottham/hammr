@@ -6,7 +6,7 @@ import Avatar from "@mui/material/Avatar";
 
 function TrackListItem({ track, onClick, mouseOver, style }) {
   const defaultStyle = {
-    backgroundColor: "neutral.main",
+    backgroundColor: "background.default",
     "&:hover": {
       backgroundColor: "primary.main",
       color: "neutral.main",

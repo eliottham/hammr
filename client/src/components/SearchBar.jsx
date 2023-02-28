@@ -4,7 +4,6 @@ import _debounce from "lodash/debounce";
 import ClientContext from "../contexts/client_context";
 import TrackListItem from "./Track/TrackListItem";
 import Stack from "@mui/material/Stack";
-import Box from "@mui/material/Box";
 
 function SearchBar({
   customHandleTrackOnClick,

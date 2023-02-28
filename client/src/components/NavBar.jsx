@@ -11,6 +11,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
+import UserMenu from "./User/UserMenu";
 
 function NavBar() {
   const client = useContext(ClientContext);
@@ -80,13 +81,7 @@ function NavBar() {
               Log In
             </Button>
           )}
-          {loggedIn && (
-            <Tooltip title="Log Out">
-              <IconButton onClick={() => client.logout()}>
-                <LogoutIcon />
-              </IconButton>
-            </Tooltip>
-          )}
+          {loggedIn && <UserMenu />}
         </Box>
       </Grid>
     </Grid>

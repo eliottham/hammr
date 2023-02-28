@@ -359,6 +359,7 @@ app.get("/current-user", async (req, res) => {
       currentUser._id = user._id;
       currentUser.username = user.username;
       currentUser.spotifyAuthorized = !!user.spotifyAccessToken;
+      currentUser.avatarUrl = user.avatarUrl;
     }
     res.status(200).json(currentUser);
   } catch (err) {
