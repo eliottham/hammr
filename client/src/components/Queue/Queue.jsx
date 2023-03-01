@@ -9,10 +9,12 @@ import QueueTrack from "./QueueTrack";
 import List from "@mui/material/List";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
+import PlaylistAddCircleIcon from "@mui/icons-material/PlaylistAddCircle";
 
 function Queue() {
   const client = useContext(ClientContext);
   const [tracks, setTracks] = useState([]);
+  const [currentPageTracks, setCurrentPageTracks] = useState([]);
 
   useEffect(() => {
     const onSpotifyPlayerStateChanged = ({
@@ -64,6 +66,50 @@ function Queue() {
     };
   }, [tracks]);
 
+  useEffect(() => {
+    // fired when Dashboard renders
+    const onGetPosts = (posts) => {
+      setCurrentPageTracks(posts.map((post) => post.spotifyTrack));
+    };
+    client.on("get-posts", onGetPosts);
+
+    // fired when Post renders
+    const onGetPost = (post) => {
+      setCurrentPageTracks(
+        [post.spotifyTrack].concat(
+          post.comments
+            ?.filter((comment) => !!comment.spotifyTrack)
+            .map((comment) => comment.spotifyTrack)
+        )
+      );
+    };
+    client.on("get-post", onGetPost);
+
+    // fired when comments are sorted on a Post
+    const onGetComments = (comments) => {
+      // the first track is from the Post since get-comments only fires from a post's comment sort
+      const postTrack = currentPageTracks[0];
+      setCurrentPageTracks(
+        [postTrack].concat(
+          comments
+            ?.filter((comment) => !!comment.spotifyTrack)
+            .map((comment) => comment.spotifyTrack)
+        )
+      );
+    };
+    client.on("get-comments", onGetComments);
+
+    return () => {
+      client.un("get-post", onGetPost);
+      client.un("get-posts", onGetPosts);
+      client.un("get-comments", onGetComments);
+    };
+  }, [currentPageTracks]);
+
+  function handleAddAllClick() {
+    setTracks(tracks.concat(currentPageTracks));
+  }
+
   function handleRemoveAllClick() {
     setTracks([]);
   }
@@ -101,6 +147,11 @@ function Queue() {
             &nbsp;<Typography variant="subtitle2">Queue</Typography>
           </Box>
           <Box flex="1" display="flex" justifyContent="flex-end">
+            <Tooltip title="Add current page tracks">
+              <IconButton onClick={handleAddAllClick}>
+                <PlaylistAddCircleIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Remove all">
               <IconButton onClick={handleRemoveAllClick}>
                 <HighlightOffIcon fontSize="small" />
