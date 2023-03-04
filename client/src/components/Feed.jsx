@@ -12,7 +12,8 @@ import Button from "@mui/material/Button";
 import ThumbUp from "@mui/icons-material/ThumbUp";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
-import AddToQueueButton from "./Queue/AddToQueueButton";
+import ListIcon from "@mui/icons-material/List";
+import { Typography } from "@mui/material";
 
 const POST_SORT_FILTER = {
   CATEGORY: "post_sort_filter_category",
@@ -30,7 +31,7 @@ const Item = styled(Paper)(({ theme }) => ({
 const initialNewest = localStorage.getItem(POST_SORT_FILTER.NEWEST);
 const initialTop = localStorage.getItem(POST_SORT_FILTER.TOP);
 
-function Dashboard() {
+function Feed() {
   const client = useContext(ClientContext);
   const [posts, setPosts] = useState([]);
   const [category, setCategory] = useState(
@@ -93,62 +94,84 @@ function Dashboard() {
   return (
     <Box sx={{ margin: "10px auto 10px auto", width: "40%" }}>
       <Item>
-        <Box display="flex" gap={1}>
-          <TextField
-            select
-            size="small"
-            label="Category"
-            value={category}
-            onChange={handleCategoryChange}
-          >
-            <MenuItem value={POST_CATEGORY.ALL}>
-              <Box display="flex" alignItems="center" justifyContent="flex-end">
-                <PublicIcon />
-                &emsp;
-                {POST_CATEGORY.ALL}
-              </Box>
-            </MenuItem>
-            <MenuItem value={POST_CATEGORY.FOLLOWING}>
-              <Box display="flex" alignItems="center" justifyContent="flex-end">
-                <PeopleAltIcon />
-                &emsp;
-                {POST_CATEGORY.FOLLOWING}
-              </Box>
-            </MenuItem>
-          </TextField>
-          <Button
-            size="small"
-            startIcon={<NewReleasesIcon />}
-            variant={newest ? "contained" : "outlined"}
-            onClick={handleNewestClick}
-          >
-            New
-          </Button>
-          <Button
-            size="small"
-            startIcon={<ThumbUp />}
-            variant={top ? "contained" : "outlined"}
-            onClick={handleTopClick}
-          >
-            Top
-          </Button>
-          {top && (
+        <Box display="flex" alignItems="center">
+          <Box display="flex" gap={1} flex="1">
             <TextField
               select
               size="small"
-              label="Posted"
-              value={posted}
-              onChange={handlePostedChange}
+              label="Category"
+              value={category}
+              onChange={handleCategoryChange}
             >
-              {Object.entries(POST_COMMENT_DATE_RANGE).map((entry) => {
-                return (
-                  <MenuItem key={entry[0]} value={entry[1]}>
-                    {entry[1]}
-                  </MenuItem>
-                );
-              })}
+              <MenuItem value={POST_CATEGORY.ALL}>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="flex-end"
+                >
+                  <PublicIcon />
+                  &emsp;
+                  {POST_CATEGORY.ALL}
+                </Box>
+              </MenuItem>
+              <MenuItem value={POST_CATEGORY.FOLLOWING}>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="flex-end"
+                >
+                  <PeopleAltIcon />
+                  &emsp;
+                  {POST_CATEGORY.FOLLOWING}
+                </Box>
+              </MenuItem>
             </TextField>
-          )}
+            <Button
+              size="small"
+              startIcon={<NewReleasesIcon />}
+              variant={newest ? "contained" : "outlined"}
+              onClick={handleNewestClick}
+            >
+              New
+            </Button>
+            <Button
+              size="small"
+              startIcon={<ThumbUp />}
+              variant={top ? "contained" : "outlined"}
+              onClick={handleTopClick}
+            >
+              Top
+            </Button>
+            {top && (
+              <TextField
+                select
+                size="small"
+                label="Posted"
+                value={posted}
+                onChange={handlePostedChange}
+              >
+                {Object.entries(POST_COMMENT_DATE_RANGE).map((entry) => {
+                  return (
+                    <MenuItem key={entry[0]} value={entry[1]}>
+                      {entry[1]}
+                    </MenuItem>
+                  );
+                })}
+              </TextField>
+            )}
+          </Box>
+          <Box
+            display="flex"
+            justifyContent="flex-end"
+            flex="1"
+            alignItems="center"
+          >
+            <ListIcon fontSize="large" />
+            &nbsp;
+            <Typography fontWeight={500} variant="h6">
+              Feed
+            </Typography>
+          </Box>
         </Box>
       </Item>
       {posts.map((post) => (
@@ -160,4 +183,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default Feed;

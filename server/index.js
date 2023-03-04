@@ -438,12 +438,13 @@ app.delete(
 app.put(
   "/user/edit",
   useAuth(async (req, res, user) => {
-    const { name, username, bio } = req.body;
+    const { firstName, lastName, username, bio } = req.body;
     try {
       let updatedUser = await User.findByIdAndUpdate(
         user._id,
         {
-          name: name,
+          firstName: firstName,
+          lastName: lastName,
           username: username,
           bio: bio,
         },
@@ -585,7 +586,7 @@ app.get("/posts/", async (req, res) => {
   try {
     let posts;
     const pipeline = [];
-    if (user) {
+    if (category === "Following") {
       pipeline.push({
         $match: {
           author: {
@@ -855,14 +856,14 @@ app.post(
     try {
       if (post) {
         await user.updateOne({
-          $push: { liked_posts: new ObjectId(post._id) },
+          $push: { likedPosts: new ObjectId(post._id) },
         });
         await Post.findByIdAndUpdate(post._id, {
           $push: { likedUsers: user._id },
         });
       } else if (comment) {
         await user.updateOne({
-          $push: { liked_comments: new ObjectId(comment._id) },
+          $push: { likedComments: new ObjectId(comment._id) },
         });
         await Comment.findByIdAndUpdate(comment._id, {
           $push: { likedUsers: user._id },
@@ -883,14 +884,14 @@ app.post(
     try {
       if (post) {
         await user.updateOne({
-          $pull: { liked_posts: new ObjectId(post._id) },
+          $pull: { likedPosts: new ObjectId(post._id) },
         });
         await Post.findByIdAndUpdate(post._id, {
           $pull: { likedUsers: user._id },
         });
       } else if (comment) {
         await user.updateOne({
-          $pull: { liked_comments: new ObjectId(comment._id) },
+          $pull: { likedComments: new ObjectId(comment._id) },
         });
         await Comment.findByIdAndUpdate(comment._id, {
           $pull: { likedUsers: user._id },
@@ -903,6 +904,72 @@ app.post(
     }
   })
 );
+
+app.get("/search", async (req, res) => {
+  const { searchQuery } = req.query;
+  try {
+    const [users, posts] = await Promise.all([
+      User.find({
+        $or: [
+          {
+            $text: {
+              $search: searchQuery,
+            },
+          },
+          {
+            username: {
+              $regex: searchQuery,
+              $options: "i",
+            },
+          },
+          {
+            firstName: {
+              $regex: searchQuery,
+              $options: "i",
+            },
+          },
+          {
+            lastName: {
+              $regex: searchQuery,
+              $options: "i",
+            },
+          },
+        ],
+      }),
+      Post.find({
+        $or: [
+          {
+            $text: {
+              $search: searchQuery,
+            },
+          },
+          {
+            "spotifyTrack.name": {
+              $regex: searchQuery,
+              $options: "i",
+            },
+          },
+          {
+            "spotifyTrack.artists.name": {
+              $regex: searchQuery,
+              $options: "i",
+            },
+          },
+          {
+            title: {
+              $regex: searchQuery,
+              $options: "i",
+            },
+          },
+        ],
+      }).populate("author"),
+    ]);
+    res.status(200).json({ users, posts });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
 
 app.listen(1337, () => {
   console.log("Server started on 1337");

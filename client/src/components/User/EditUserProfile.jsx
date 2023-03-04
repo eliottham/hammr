@@ -41,9 +41,10 @@ function EditUserProfile() {
   const client = useContext(ClientContext);
 
   const [user, setUser] = useState();
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState();
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [bio, setBio] = useState("");
   const [bioCharCount, setBioCharCount] = useState(0);
   const [openAvatarDialog, setOpenAvatarDialog] = useState(false);
@@ -53,11 +54,12 @@ function EditUserProfile() {
     const onGetUser = (responseUser) => {
       if (responseUser._id === client.user._id) {
         setUser(responseUser);
-        setName(responseUser.name);
-        setUsername(responseUser.username);
-        setAvatarUrl(responseUser.avatarUrl);
-        setBio(responseUser.bio);
-        setBioCharCount(responseUser.bio?.length);
+        setFirstName(responseUser.firstName || "");
+        setLastName(responseUser.lastName || "");
+        setUsername(responseUser.username || "");
+        setAvatarUrl(responseUser.avatarUrl || "");
+        setBio(responseUser.bio || "");
+        setBioCharCount(responseUser.bio?.length || 0);
       }
     };
     client.on("get-user", onGetUser);
@@ -125,7 +127,6 @@ function EditUserProfile() {
         };
         image.src = readerEvent.target.result;
       };
-
       reader.readAsDataURL(file);
     }
   }
@@ -207,12 +208,23 @@ function EditUserProfile() {
             </Typography>
           </Grid>
           <Grid item xs={1} align="right">
-            <Typography fontWeight="bold">Name</Typography>
+            <Typography fontWeight="bold">First Name</Typography>
           </Grid>
           <Grid item xs={2}>
             <TextField
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              size="small"
+              sx={inputStyle}
+            />
+          </Grid>
+          <Grid item xs={1} align="right">
+            <Typography fontWeight="bold">Last Name</Typography>
+          </Grid>
+          <Grid item xs={2}>
+            <TextField
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
               size="small"
               sx={inputStyle}
             />
@@ -256,7 +268,12 @@ function EditUserProfile() {
               variant="contained"
               disabled={bioCharCount > 150}
               onClick={() =>
-                client.submitUserProfileEdits({ name, username, bio })
+                client.submitUserProfileEdits({
+                  firstName,
+                  lastName,
+                  username,
+                  bio,
+                })
               }
             >
               Submit

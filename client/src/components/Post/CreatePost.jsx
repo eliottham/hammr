@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from "react";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
-import SearchBar from "../SearchBar";
+import TrackSearchBar from "../Track/TrackSearchBar";
 import Grid from "@mui/material/Grid";
 import TrackListItem from "../Track/TrackListItem";
 import List from "@mui/material/List";
@@ -62,7 +62,7 @@ function CreatePost() {
           </Grid>
           {!spotifyTrack && (
             <Grid item>
-              <SearchBar
+              <TrackSearchBar
                 label="Track"
                 placeholder="Search Track"
                 customHandleTrackOnClick={handleTrackOnClick}

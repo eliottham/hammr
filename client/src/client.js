@@ -307,6 +307,23 @@ class Client extends Evt {
       this.checkError(e);
     }
   }
+
+  async search(query) {
+    try {
+      if (!query) {
+        this.fire("search", { noSearch: true });
+      } else {
+        const response = await axios.get("/search", {
+          params: {
+            searchQuery: query,
+          },
+        });
+        this.fire("search", response.data);
+      }
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
 }
 
 export default Client;

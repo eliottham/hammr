@@ -6,7 +6,7 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import TrackListItem from "../Track/TrackListItem";
-import SearchBar from "../SearchBar";
+import TrackSearchBar from "../Track/TrackSearchBar";
 
 import ClientContext from "../../contexts/client_context";
 
@@ -31,7 +31,7 @@ function CreateComment({ post_id }) {
       <Grid alignItems="stretch" container spacing={1} direction="column">
         <Grid item>
           {!spotifyTrack && (
-            <SearchBar
+            <TrackSearchBar
               label="Track"
               placeholder="Search Track"
               customHandleTrackOnClick={handleTrackOnClick}

@@ -9,7 +9,7 @@ import Client from "./client";
 
 import Login from "./components/Dialog/Login";
 import Register from "./components/Dialog/Register";
-import Dashboard from "./components/Dashboard";
+import Home from "./components/Home";
 import Player from "./components/Player";
 import NavBar from "./components/NavBar";
 import CreatePost from "./components/Post/CreatePost";
@@ -189,7 +189,7 @@ const App = () => {
             }}
           >
             <Routes>
-              <Route path="/" exact element={<Dashboard />} />
+              <Route path="/" exact element={<Home />} />
               <Route path="/post" element={<CreatePost />} />
               <Route path="/post/:post_id" element={<Post />} />
               <Route path="/user/:user_id" element={<UserProfile />} />
