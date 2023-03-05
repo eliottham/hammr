@@ -2,20 +2,15 @@ import React, { useState, useContext, useEffect } from "react";
 import ClientContext from "../contexts/client_context";
 import PostPreview from "./Post/PostPreview";
 import Box from "@mui/material/Box";
-import { POST_CATEGORY, POST_COMMENT_DATE_RANGE } from "../constants.js";
 import { styled } from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
-import PublicIcon from "@mui/icons-material/Public";
-import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
-import NewReleasesIcon from "@mui/icons-material/NewReleases";
 import Button from "@mui/material/Button";
-import ThumbUp from "@mui/icons-material/ThumbUp";
-import MenuItem from "@mui/material/MenuItem";
-import TextField from "@mui/material/TextField";
 import ArticleIcon from "@mui/icons-material/Article";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import SearchIcon from "@mui/icons-material/Search";
 import Typography from "@mui/material/Typography";
+import { useParams } from "react-router-dom";
+import UserProfilePreview from "./User/UserProfilePreview";
 
 const Item = styled(Paper)(({ theme }) => ({
   position: "relative",
@@ -25,9 +20,18 @@ const Item = styled(Paper)(({ theme }) => ({
 
 function SearchResults() {
   const client = useContext(ClientContext);
-  const [viewPosts, setViewPosts] = useState(true);
+  const [viewPosts, setViewPosts] = useState(
+    localStorage.getItem("search_results_post")
+      ? localStorage.getItem("search_results_post") === "true"
+      : true
+  );
   const [users, setUsers] = useState([]);
   const [posts, setPosts] = useState([]);
+  const { query } = useParams();
+
+  useEffect(() => {
+    client.search(query);
+  }, [query]);
 
   useEffect(() => {
     const onSearch = (results) => {
@@ -50,7 +54,10 @@ function SearchResults() {
               size="small"
               startIcon={<ArticleIcon />}
               variant={viewPosts ? "contained" : "outlined"}
-              onClick={() => setViewPosts(true)}
+              onClick={() => {
+                setViewPosts(true);
+                localStorage.setItem("search_results_post", true);
+              }}
             >
               Posts
             </Button>
@@ -58,7 +65,10 @@ function SearchResults() {
               size="small"
               startIcon={<AccountBoxIcon />}
               variant={!viewPosts ? "contained" : "outlined"}
-              onClick={() => setViewPosts(false)}
+              onClick={() => {
+                setViewPosts(false);
+                localStorage.setItem("search_results_post", false);
+              }}
             >
               Users
             </Button>
@@ -72,7 +82,7 @@ function SearchResults() {
             <SearchIcon />
             &nbsp;
             <Typography fontWeight={500} variant="h7">
-              Search
+              Search Results
             </Typography>
           </Box>
         </Box>
@@ -92,7 +102,7 @@ function SearchResults() {
       ) : users.length ? (
         users.map((user) => (
           <Box sx={{ marginTop: "10px" }} key={user._id}>
-            {user.username}
+            <UserProfilePreview user={user} />
           </Box>
         ))
       ) : (

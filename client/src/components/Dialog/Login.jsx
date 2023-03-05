@@ -81,7 +81,7 @@ function Login() {
           }}
           error={!!error}
           onKeyPress={(e) => {
-            if (e.which === 13) {
+            if (e.key === "Enter") {
               login();
             }
           }}

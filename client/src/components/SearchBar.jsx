@@ -1,25 +1,11 @@
-import React, { useCallback, useState, useContext } from "react";
-import { TextField, Divider, List } from "@mui/material";
-import _debounce from "lodash/debounce";
-import ClientContext from "../contexts/client_context";
-import TrackListItem from "./Track/TrackListItem";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
 
 function SearchBar() {
-  const client = useContext(ClientContext);
-
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
-
-  const debounceSearch = useCallback(_debounce(search, 500), []);
-
-  function search(q) {
-    client.search(q);
-  }
-
-  function handleOnChange(e) {
-    setQuery(e.target.value);
-    debounceSearch(e.target.value);
-  }
 
   return (
     <Stack
@@ -35,7 +21,12 @@ function SearchBar() {
         size="small"
         label={"Search"}
         value={query}
-        onChange={(e) => handleOnChange(e)}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            navigate(`/search/${query}`);
+          }
+        }}
         autoComplete="off"
       />
     </Stack>

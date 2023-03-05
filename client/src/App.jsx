@@ -9,7 +9,7 @@ import Client from "./client";
 
 import Login from "./components/Dialog/Login";
 import Register from "./components/Dialog/Register";
-import Home from "./components/Home";
+import Feed from "./components/Feed";
 import Player from "./components/Player";
 import NavBar from "./components/NavBar";
 import CreatePost from "./components/Post/CreatePost";
@@ -21,6 +21,7 @@ import Alert from "@mui/material/Alert";
 import Slide from "@mui/material/Slide";
 import Box from "@mui/material/Box";
 import Queue from "./components/Queue/Queue";
+import SearchResults from "./components/SearchResults";
 
 const client = new Client();
 
@@ -189,11 +190,12 @@ const App = () => {
             }}
           >
             <Routes>
-              <Route path="/" exact element={<Home />} />
+              <Route path="/" exact element={<Feed />} />
               <Route path="/post" element={<CreatePost />} />
               <Route path="/post/:post_id" element={<Post />} />
               <Route path="/user/:user_id" element={<UserProfile />} />
               <Route path="/user/edit" element={<EditUserProfile />} />
+              <Route path="/search/:query" element={<SearchResults />} />
             </Routes>
           </Box>
           <Box
