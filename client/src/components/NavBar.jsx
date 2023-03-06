@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useContext, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import Grid from "@mui/material/Grid";
 import ClientContext from "../contexts/client_context";
 import SearchBar from "./SearchBar";
@@ -7,7 +7,6 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import HomeIcon from "@mui/icons-material/Home";
-import LogoutIcon from "@mui/icons-material/Logout";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
@@ -16,9 +15,7 @@ import UserMenu from "./User/UserMenu";
 function NavBar() {
   const client = useContext(ClientContext);
   const navigate = useNavigate();
-  const [loggedIn, setLoggedIn] = useState(!!client.user._id);
 
-  // TODO: check if user is logged in and change logout button to login if not
   useEffect(() => {
     const onLogout = () => {
       navigate(0);
@@ -73,7 +70,7 @@ function NavBar() {
       </Grid>
       <Grid item xs={2}>
         <Box display="flex" justifyContent="flex-end">
-          {!loggedIn && (
+          {!!!client.user._id && (
             <Button
               variant="contained"
               onClick={() => client.fire("login-link-click")}
@@ -81,7 +78,7 @@ function NavBar() {
               Log In
             </Button>
           )}
-          {loggedIn && <UserMenu />}
+          {!!client.user._id && <UserMenu />}
         </Box>
       </Grid>
     </Grid>

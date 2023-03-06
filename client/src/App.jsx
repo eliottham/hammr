@@ -123,12 +123,12 @@ const App = () => {
     };
     client.on("require-spotify-authorization", onRequireSpotifyAuthorization);
 
-    const onSpotifyAuthorizationLinkClick = () => {
+    const onCloseSpotifyAuthorizationDialog = () => {
       setOpenSpotifyAuthDialog(false);
     };
     client.on(
-      "spotify-authorization-link-click",
-      onSpotifyAuthorizationLinkClick
+      "spotify-authorization-close-dialog",
+      onCloseSpotifyAuthorizationDialog
     );
 
     const onAlert = (a) => {
@@ -148,7 +148,7 @@ const App = () => {
       client.un("register-link-click", onRegisterLinkClick);
       client.un(
         "spotify-authorization-link-click",
-        onSpotifyAuthorizationLinkClick
+        onCloseSpotifyAuthorizationDialog
       );
       client.un("alert", onAlert);
     };

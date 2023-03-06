@@ -55,11 +55,24 @@ app.get("/token", (req, res) =>
 app.post("/register", async (req, res) => {
   console.log(req.body);
   try {
-    await User.create({
+    const user = await User.create({
       username: req.body.username,
       email: req.body.email,
       password: req.body.password,
     });
+    const token = jwt.sign(
+      {
+        _id: user._id,
+        email: user.email,
+        username: user.username,
+      },
+      // JWT_SECRET,
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "72h",
+      }
+    );
+    res.cookie("token", token, { httpOnly: true });
     res.sendStatus(200);
   } catch (err) {
     // duplicate key error
@@ -93,7 +106,7 @@ app.post("/login", async (req, res) => {
         }
       );
       res.cookie("token", token, { httpOnly: true });
-      res.status(200).json({ _id: user._id, username: user.username });
+      res.sendStatus(200);
     } else {
       res.status(401).json({
         error: "Incorrect username or password",

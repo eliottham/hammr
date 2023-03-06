@@ -1,31 +1,39 @@
 import { useContext } from "react";
-import { Grid, Paper, Button } from "@mui/material";
+import { Box, Paper, Button, Typography } from "@mui/material";
 import ClientContext from "../../contexts/client_context";
 
 function SpotifyAuthorization() {
   const client = useContext(ClientContext);
 
   return (
-    <Grid>
-      <Paper
-        elevation={10}
-        sx={{
-          padding: "20px",
-          height: "55vh",
-          width: "25vw",
-          margin: "100px auto",
-        }}
-      >
-        <p>Spotify Authorization is required to use this feature</p>
+    <Paper
+      elevation={10}
+      sx={{
+        padding: "20px",
+        height: "20vh",
+        width: "25vw",
+        margin: "100px auto",
+      }}
+    >
+      <Box display="flex" gap={1} flexDirection="column">
+        <Typography variant="h6" textAlign="center">
+          You must link your Spotify Premium account to use this feature.
+        </Typography>
         <Button
           variant="contained"
           href="http://localhost:1337/spotify-authorization"
-          onClick={() => client.fire("spotify-authorization-link-click")}
+          onClick={() => client.fire("spotify-authorization-close-dialog")}
         >
           Authorize
         </Button>
-      </Paper>
-    </Grid>
+        <Button
+          variant="contained"
+          onClick={() => client.fire("spotify-authorization-close-dialog")}
+        >
+          Cancel
+        </Button>
+      </Box>
+    </Paper>
   );
 }
 

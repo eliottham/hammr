@@ -23,6 +23,7 @@ class Client extends Evt {
   async register(data) {
     try {
       await axios.post("/register", data);
+      this.fire("login");
     } catch (e) {
       if (e.response.status === 409) {
         this.fire("register-error", e.response.data);
@@ -34,8 +35,8 @@ class Client extends Evt {
 
   async login(data) {
     try {
-      const response = await axios.post("/login", data);
-      this.fire("login", response.data);
+      await axios.post("/login", data);
+      this.fire("login");
     } catch (e) {
       if (e.response.status === 401) {
         this.fire("login-error", e.response.data);

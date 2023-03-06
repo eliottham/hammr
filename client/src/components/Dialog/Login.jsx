@@ -63,7 +63,7 @@ function Login() {
           error={!!error}
           style={{ paddingBottom: "8px" }}
           onKeyPress={(e) => {
-            if (e.which === 13) {
+            if (e.key === "Enter") {
               login();
             }
           }}
