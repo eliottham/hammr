@@ -209,6 +209,15 @@ class Client extends Evt {
     }
   }
 
+  async editPost(data) {
+    try {
+      const response = await axios.put("/post", data);
+      this.fire("get-post", response.data);
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
   async deletePost(post_id) {
     try {
       await axios.delete(`/post/${post_id}`);

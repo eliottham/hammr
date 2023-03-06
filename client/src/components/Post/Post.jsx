@@ -15,6 +15,11 @@ import Util from "../../util.js";
 import UsernameLink from "../User/UsernameLink";
 import UserAvatarLink from "../User/UserAvatarLink";
 import PostCommentSort from "./PostCommentSort";
+import Tooltip from "@mui/material/Tooltip";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
 
 const Item = styled(Paper)(({ theme }) => ({
   position: "relative",
@@ -30,11 +35,15 @@ function Post() {
   const { post_id } = useParams();
   const [post, setPost] = useState({});
   const [comments, setComments] = useState([]);
+  const [edit, setEdit] = useState(false);
+  const [editedPostDesc, setEditedPostDesc] = useState("");
 
   useEffect(() => {
     const onGetPost = (responsePost) => {
       setPost(responsePost);
       setComments(responsePost.comments);
+      setEditedPostDesc(responsePost.description);
+      setEdit(false);
     };
     client.on("get-post", onGetPost);
     client.getPost(post_id);
@@ -100,13 +109,66 @@ function Post() {
               <Track track={post.spotifyTrack} />
             </Grid>
             <Grid item xs={1} />
-            {post.description && (
+            {edit ? (
               <>
                 <Grid item xs={1} />
                 <Grid item xs={10}>
-                  <Typography variant="body1">{post.description}</Typography>
+                  <TextField
+                    fullWidth
+                    label="Description"
+                    multiline
+                    onChange={(e) => setEditedPostDesc(e.target.value)}
+                    value={editedPostDesc}
+                  />
                 </Grid>
                 <Grid item xs={1} />
+                <Grid item xs={1} />
+                <Grid item xs={11}>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    sx={{ marginRight: "8px" }}
+                    onClick={() =>
+                      client.editPost({
+                        post_id,
+                        description: editedPostDesc,
+                      })
+                    }
+                    disabled={post.description === editedPostDesc}
+                  >
+                    Save Edit
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => setEdit(false)}
+                  >
+                    Cancel
+                  </Button>
+                </Grid>
+              </>
+            ) : (
+              post.description && (
+                <>
+                  <Grid item xs={1} />
+                  <Grid item xs={10}>
+                    <Typography variant="body1">{post.description}</Typography>
+                  </Grid>
+                  <Grid item xs={1} />
+                </>
+              )
+            )}
+            {client.user?._id === post.author?._id && (
+              <>
+                <Grid item xs={1} />
+                <Grid item xs={11}>
+                  <Tooltip title="Edit Comment">
+                    <IconButton onClick={() => setEdit(!edit)} edge="start">
+                      <EditOutlinedIcon fontSize="small" />
+                      <Typography variant="button">&nbsp;Edit</Typography>
+                    </IconButton>
+                  </Tooltip>
+                </Grid>
               </>
             )}
           </Grid>

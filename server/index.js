@@ -536,6 +536,32 @@ app.post(
   })
 );
 
+app.put(
+  "/post",
+  useAuth(async (req, res, user) => {
+    const { post_id, description } = req.body;
+    try {
+      const post = await Post.findByIdAndUpdate(
+        post_id,
+        { description },
+        { new: true }
+      )
+        .lean()
+        .populate("author")
+        .populate({
+          path: "comments",
+          populate: {
+            path: "author",
+          },
+        });
+      res.status(200).json(post);
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
+
 app.delete(
   "/post/:post_id",
   useAuth(async (req, res, user) => {
