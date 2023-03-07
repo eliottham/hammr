@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+var aggregatePaginate = require("mongoose-aggregate-paginate-v2");
 const ObjectId = mongoose.Types.ObjectId;
 
 const schema = new mongoose.Schema(
@@ -28,5 +29,7 @@ schema.post("deleteOne", { document: true }, async (doc) => {
     await mongoose.model("Comment").deleteMany({ _id: { $in: doc.comments } });
   }
 });
+
+schema.plugin(aggregatePaginate);
 
 module.exports = mongoose.model("Post", schema);

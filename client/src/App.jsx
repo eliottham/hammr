@@ -204,6 +204,7 @@ const App = () => {
               position: "fixed",
               bottom: "80px",
               width: "100%",
+              pointerEvents: "none",
             }}
           >
             <Slide direction="up" in={!!alert}>

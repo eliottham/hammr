@@ -610,7 +610,7 @@ app.get("/post/:post_id", async (req, res) => {
 });
 
 app.get("/posts/", async (req, res) => {
-  const { category, newest, top, posted } = req.query;
+  const { category, newest, top, posted, page } = req.query;
   let user;
   if (category === "Following") {
     try {
@@ -699,48 +699,16 @@ app.get("/posts/", async (req, res) => {
         });
       }
     }
-    posts = await Post.aggregate(pipeline);
-    res.status(200).json(posts);
+    let result = await Post.aggregatePaginate(Post.aggregate(pipeline), {
+      page,
+      limit: 20,
+    });
+    res.status(200).json(result);
   } catch (err) {
     console.log(err);
     res.status(500).send(err);
   }
 });
-
-app.get(
-  "/posts/following",
-  useAuth(async (req, res, user) => {
-    try {
-      const posts = await Post.aggregate()
-        .match({
-          author: {
-            $in: user.following,
-          },
-        })
-        .lookup({
-          from: "users",
-          localField: "author",
-          foreignField: "_id",
-          as: "author",
-        })
-        .unwind("author")
-        .addFields({
-          date: {
-            $dateFromParts: {
-              year: { $year: "$creationDate" },
-              month: { $month: "$creationDate" },
-              day: { $dayOfMonth: "$creationDate" },
-            },
-          },
-        })
-        .sort({ date: -1, likedUsers: -1 });
-      res.status(200).json(posts);
-    } catch (err) {
-      console.log(err);
-      res.status(500).send(err);
-    }
-  })
-);
 
 app.post(
   "/comment",

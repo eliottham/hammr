@@ -5,11 +5,11 @@ const User = mongoose.model(
   "User",
   new mongoose.Schema(
     {
-      username: { type: String, required: true, unique: true },
+      username: { type: String, required: true, unique: true, minLength: 4 },
       email: { type: String, required: true, unique: true },
       avatarUrl: { type: String },
       avatarPublicId: { type: String },
-      password: { type: String, required: true, minLength: 5 },
+      password: { type: String, required: true, minLength: 5, select: false },
       firstName: { type: String },
       lastName: { type: String },
       spotifyAccessToken: { type: String },

@@ -13,7 +13,8 @@ import ThumbUp from "@mui/icons-material/ThumbUp";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import ListIcon from "@mui/icons-material/List";
-import { Typography } from "@mui/material";
+import Typography from "@mui/material/Typography";
+import Pagination from "@mui/material/Pagination";
 
 const POST_SORT_FILTER = {
   CATEGORY: "post_sort_filter_category",
@@ -45,8 +46,12 @@ function Feed() {
     localStorage.getItem(POST_SORT_FILTER.POSTED) ||
       POST_COMMENT_DATE_RANGE.TODAY
   );
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   function filterChange(params) {
+    setPage(1);
+    params.page = 1;
     client.getPosts(params);
   }
 
@@ -78,13 +83,25 @@ function Feed() {
     filterChange({ category, newest, top, posted: e.target.value });
   }
 
+  function handlePageChange(event, value) {
+    setPage(value);
+    client.getPosts({
+      category,
+      newest,
+      top,
+      posted,
+      page: value,
+    });
+  }
+
   useEffect(() => {
-    const onGetPosts = (responsePosts) => {
-      setPosts(responsePosts);
+    const onGetPosts = (response) => {
+      setPosts(response.docs);
+      setTotalPages(response.totalPages);
     };
     client.on("get-posts", onGetPosts);
 
-    client.getPosts({ category, newest, top, posted });
+    client.getPosts({ category, newest, top, posted, page });
 
     return () => {
       client.un("get-posts", onGetPosts);
@@ -179,6 +196,14 @@ function Feed() {
           <PostPreview post={post} />
         </Box>
       ))}
+      <Box alignItems="center" mt="10px" justifyContent="center" display="flex">
+        <Pagination
+          page={page}
+          count={totalPages}
+          shape="rounded"
+          onChange={handlePageChange}
+        />
+      </Box>
     </Box>
   );
 }

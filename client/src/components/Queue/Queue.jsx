@@ -68,8 +68,8 @@ function Queue() {
 
   useEffect(() => {
     // fired when Dashboard renders
-    const onGetPosts = (posts) => {
-      setCurrentPageTracks(posts.map((post) => post.spotifyTrack));
+    const onGetPosts = (response) => {
+      setCurrentPageTracks(response.docs.map((post) => post.spotifyTrack));
     };
     client.on("get-posts", onGetPosts);
 
