@@ -8,15 +8,7 @@ import TextField from "@mui/material/TextField";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import ElderlyWomanIcon from "@mui/icons-material/ElderlyWoman";
 
-function PostCommentSort({ post_id }) {
-  const client = useContext(ClientContext);
-  const [sort, setSort] = useState("top");
-
-  function handleSortChange(e) {
-    setSort(e.target.value);
-    client.getComments({ post_id, sortBy: e.target.value });
-  }
-
+function PostCommentSort({ post_id, sort, handleSortChange }) {
   return (
     <TextField
       select

@@ -595,13 +595,7 @@ app.get("/post/:post_id", async (req, res) => {
   try {
     const post = await Post.findById(new ObjectId(req.params.post_id))
       .lean()
-      .populate("author")
-      .populate({
-        path: "comments",
-        populate: {
-          path: "author",
-        },
-      });
+      .populate("author");
     post ? res.status(200).json(post) : res.status(404).send("Post not found");
   } catch (err) {
     console.log(err);
@@ -623,7 +617,6 @@ app.get("/posts/", async (req, res) => {
     }
   }
   try {
-    let posts;
     const pipeline = [];
     if (category === "Following") {
       pipeline.push({
@@ -778,7 +771,7 @@ app.put(
 );
 
 app.get("/comments", async (req, res, user) => {
-  const { post_id, user_id } = req.query; // top, newest, bottom, oldest
+  const { post_id, user_id, page } = req.query; // top, newest, bottom, oldest
   const sortBy = req.query.sortBy || "top";
   const pipeline = [];
   try {
@@ -828,8 +821,11 @@ app.get("/comments", async (req, res, user) => {
         },
       });
     }
-    const comments = await Comment.aggregate(pipeline);
-    res.status(200).json(comments);
+    let result = await Comment.aggregatePaginate(Comment.aggregate(pipeline), {
+      page,
+      limit: 20,
+    });
+    res.status(200).json(result);
   } catch (err) {
     console.log(err);
     res.status(500).send(err);

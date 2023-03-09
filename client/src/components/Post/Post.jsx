@@ -20,6 +20,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import Pagination from "@mui/material/Pagination";
 
 const Item = styled(Paper)(({ theme }) => ({
   position: "relative",
@@ -37,21 +38,28 @@ function Post() {
   const [comments, setComments] = useState([]);
   const [edit, setEdit] = useState(false);
   const [editedPostDesc, setEditedPostDesc] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [sort, setSort] = useState("top");
 
   useEffect(() => {
     const onGetPost = (responsePost) => {
       setPost(responsePost);
-      setComments(responsePost.comments);
       setEditedPostDesc(responsePost.description);
       setEdit(false);
+      client.getComments({
+        post_id,
+        sortBy: sort,
+        page: page,
+      });
     };
     client.on("get-post", onGetPost);
     client.getPost(post_id);
 
-    const onGetComments = (responseComments) => {
-      setComments(responseComments);
+    const onGetComments = (response) => {
+      setComments(response.docs);
+      setTotalPages(response.totalPages);
     };
-    // fired by PostCommentSort
     client.on("get-comments", onGetComments);
 
     const onDeletePost = () => {
@@ -65,6 +73,20 @@ function Post() {
       client.un("delete-post", onDeletePost);
     };
   }, [client, post_id, navigate]);
+
+  function handleSortChange(e) {
+    setSort(e.target.value);
+    client.getComments({ post_id, sortBy: e.target.value, page: 1 });
+  }
+
+  function handlePageChange(event, value) {
+    setPage(value);
+    client.getComments({
+      post_id,
+      sortBy: sort,
+      page: value,
+    });
+  }
 
   return (
     <Grid
@@ -180,22 +202,41 @@ function Post() {
         </Item>
       </Grid>
       {comments?.length ? (
-        <Grid item>
-          <Item>
-            <PostCommentSort post_id={post_id} />
-            <Box mb="15px" />
-            {comments.map((comment, i) => {
-              return (
-                <Box key={comment._id}>
-                  <Comment comment={comment} />
-                  {i < comments.length - 1 ? (
-                    <Divider sx={{ margin: "5px 0 15px 30px" }} />
-                  ) : null}
-                </Box>
-              );
-            })}
-          </Item>
-        </Grid>
+        <>
+          <Grid item>
+            <Item>
+              <PostCommentSort
+                post_id={post_id}
+                sort={sort}
+                handleSortChange={handleSortChange}
+              />
+              <Box mb="15px" />
+              {comments.map((comment, i) => {
+                return (
+                  <Box key={comment._id}>
+                    <Comment comment={comment} />
+                    {i < comments.length - 1 ? (
+                      <Divider sx={{ margin: "5px 0 15px 30px" }} />
+                    ) : null}
+                  </Box>
+                );
+              })}
+            </Item>
+          </Grid>
+          <Box
+            alignItems="center"
+            mt="10px"
+            justifyContent="center"
+            display="flex"
+          >
+            <Pagination
+              page={page}
+              count={totalPages}
+              shape="rounded"
+              onChange={handlePageChange}
+            />
+          </Box>
+        </>
       ) : (
         <></>
       )}
