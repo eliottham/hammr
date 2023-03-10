@@ -36,7 +36,9 @@ function Feed() {
   const client = useContext(ClientContext);
   const [posts, setPosts] = useState([]);
   const [category, setCategory] = useState(
-    localStorage.getItem(POST_SORT_FILTER.CATEGORY) || POST_CATEGORY.ALL
+    client.user?._id
+      ? localStorage.getItem(POST_SORT_FILTER.CATEGORY) || POST_CATEGORY.ALL
+      : POST_CATEGORY.ALL
   );
   const [newest, setNewest] = useState(
     initialNewest ? initialNewest === "true" : true

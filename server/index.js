@@ -397,6 +397,19 @@ app.get("/user/:user_id", async (req, res) => {
   }
 });
 
+app.get("/user/:user_id/content", async (req, res) => {
+  try {
+    const user = await User.findById(new ObjectId(req.params.user_id))
+      .lean()
+      .populate("posts")
+      .populate("comments");
+    res.status(200).json(user);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
 app.post(
   "/user/avatar",
   upload.single("avatar"),
@@ -604,7 +617,7 @@ app.get("/post/:post_id", async (req, res) => {
 });
 
 app.get("/posts/", async (req, res) => {
-  const { category, newest, top, posted, page } = req.query;
+  const { category, newest, top, posted, page, user_id } = req.query;
   let user;
   if (category === "Following") {
     try {
@@ -618,6 +631,13 @@ app.get("/posts/", async (req, res) => {
   }
   try {
     const pipeline = [];
+    if (user_id) {
+      pipeline.push({
+        $match: {
+          author: new ObjectId(user_id),
+        },
+      });
+    }
     if (category === "Following") {
       pipeline.push({
         $match: {

@@ -67,7 +67,7 @@ function Queue() {
   }, [tracks]);
 
   useEffect(() => {
-    // fired when Dashboard renders
+    // fired when Feed / UserProfile renders
     const onGetPosts = (response) => {
       setCurrentPageTracks(response.docs.map((post) => post.spotifyTrack));
     };
@@ -85,24 +85,38 @@ function Queue() {
     };
     client.on("get-post", onGetPost);
 
-    // fired when comments are sorted on a Post
-    const onGetComments = (comments) => {
-      // the first track is from the Post since get-comments only fires from a post's comment sort
-      const postTrack = currentPageTracks[0];
-      setCurrentPageTracks(
-        [postTrack].concat(
-          comments
+    // fired when UserProfile renders and when comments are sorted on a Post
+    const onGetComments = (response) => {
+      if (response.fromPost) {
+        // if get-comments was fired from getting a post, add the post track as the first track
+        setCurrentPageTracks(
+          [currentPageTracks[0]].concat(
+            response.docs
+              ?.filter((comment) => !!comment.spotifyTrack)
+              .map((comment) => comment.spotifyTrack)
+          )
+        );
+      } else {
+        setCurrentPageTracks(
+          response.docs
             ?.filter((comment) => !!comment.spotifyTrack)
             .map((comment) => comment.spotifyTrack)
-        )
-      );
+        );
+      }
     };
     client.on("get-comments", onGetComments);
+
+    // fired from switching between user profile's posts and comments
+    const onUpdateQueueTracks = (tracks) => {
+      setCurrentPageTracks(tracks);
+    };
+    client.on("update-queue-tracks", onUpdateQueueTracks);
 
     return () => {
       client.un("get-post", onGetPost);
       client.un("get-posts", onGetPosts);
       client.un("get-comments", onGetComments);
+      client.un("update-queue-tracks", onUpdateQueueTracks);
     };
   }, [currentPageTracks]);
 

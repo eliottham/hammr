@@ -13,6 +13,7 @@ import ButtonGroup from "@mui/material/ButtonGroup";
 import FollowButton from "../FollowButton";
 import PostPreview from "../Post/PostPreview";
 import Comment from "../Comment/Comment";
+import Pagination from "@mui/material/Pagination";
 
 const DISPLAY_CATEGORIES = {
   POST: "post",
@@ -29,22 +30,13 @@ function UserProfile() {
   const [displayCategory, setDisplayCategory] = useState(
     DISPLAY_CATEGORIES.POST
   );
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const onGetUser = (responseUser) => {
       if (responseUser._id === user_id) {
         setUser(responseUser);
-        // author is not populated from server since we are populating Post and Comment from get /user/:id
-        setPosts(
-          responseUser.posts.map((post) =>
-            Object.assign({}, post, { author: responseUser })
-          )
-        );
-        setComments(
-          responseUser.comments.map((comment) =>
-            Object.assign({}, comment, { author: responseUser })
-          )
-        );
       }
     };
     client.on("get-user", onGetUser);
@@ -54,6 +46,69 @@ function UserProfile() {
       client.un("get-user", onGetUser);
     };
   }, [user_id]);
+
+  useEffect(() => {
+    const onGetComments = (response) => {
+      setComments(response.docs);
+      setPage(response.page);
+      setTotalPages(response.totalPages);
+    };
+    client.on("get-comments", onGetComments);
+    client.getComments({
+      user_id,
+      page,
+      sortBy: "newest",
+    });
+
+    const onGetPosts = (response) => {
+      setPosts(response.docs);
+      setPage(response.page);
+      setTotalPages(response.totalPages);
+    };
+    client.on("get-posts", onGetPosts);
+    client.getPosts({
+      user_id,
+      page,
+    });
+
+    return () => {
+      client.un("get-comments", onGetComments);
+      client.un("get-posts", onGetPosts);
+    };
+  }, [user]);
+
+  function handleDisplayCategoryClick(category) {
+    setDisplayCategory(category);
+    if (category === DISPLAY_CATEGORIES.POST) {
+      client.fire(
+        "update-queue-tracks",
+        posts.map((post) => post.spotifyTrack)
+      );
+    } else {
+      client.fire(
+        "update-queue-tracks",
+        comments
+          .filter((comment) => !!comment.spotifyTrack)
+          .map((comment) => comment.spotifyTrack)
+      );
+    }
+  }
+
+  function handlePageChange(event, value) {
+    setPage(value);
+    if (displayCategory === DISPLAY_CATEGORIES.POST) {
+      client.getPosts({
+        user_id,
+        page: value,
+      });
+    } else {
+      client.getComments({
+        user_id,
+        page: value,
+        sortBy: "newest",
+      });
+    }
+  }
 
   const Item = styled(Paper)(({ theme }) => ({
     position: "relative",
@@ -145,7 +200,7 @@ function UserProfile() {
       >
         <ButtonGroup sx={{ width: "100%" }}>
           <Button
-            onClick={() => setDisplayCategory(DISPLAY_CATEGORIES.POST)}
+            onClick={() => handleDisplayCategoryClick(DISPLAY_CATEGORIES.POST)}
             sx={{ width: "50%" }}
             variant={
               displayCategory === DISPLAY_CATEGORIES.POST
@@ -156,7 +211,9 @@ function UserProfile() {
             Posts
           </Button>
           <Button
-            onClick={() => setDisplayCategory(DISPLAY_CATEGORIES.COMMENT)}
+            onClick={() =>
+              handleDisplayCategoryClick(DISPLAY_CATEGORIES.COMMENT)
+            }
             sx={{ width: "50%" }}
             variant={
               displayCategory === DISPLAY_CATEGORIES.COMMENT
@@ -201,6 +258,23 @@ function UserProfile() {
               <Comment comment={comment} />
             </Paper>
           ))}
+        {((displayCategory === DISPLAY_CATEGORIES.POST && posts.length) ||
+          (displayCategory === DISPLAY_CATEGORIES.COMMENT &&
+            comments.length)) && (
+          <Box
+            alignItems="center"
+            mt="10px"
+            justifyContent="center"
+            display="flex"
+          >
+            <Pagination
+              page={page}
+              count={totalPages}
+              shape="rounded"
+              onChange={handlePageChange}
+            />
+          </Box>
+        )}
       </Grid>
     </Grid>
   ) : null;

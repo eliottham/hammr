@@ -237,7 +237,6 @@ class Client extends Evt {
     }
   }
 
-  // TODO: Add search parameters to have feed curated to user
   async getPosts(params) {
     params = Object.assign(
       {
@@ -283,7 +282,10 @@ class Client extends Evt {
       const response = await axios.get("/comments", {
         params,
       });
-      this.fire("get-comments", response.data);
+      this.fire("get-comments", {
+        ...response.data,
+        fromPost: !!params.post_id,
+      });
     } catch (e) {
       this.checkError(e);
     }

@@ -1,5 +1,3 @@
-import React, { useState, useContext, useEffect } from "react";
-import ClientContext from "../../contexts/client_context";
 import Box from "@mui/material/Box";
 import NewReleasesIcon from "@mui/icons-material/NewReleases";
 import ThumbUp from "@mui/icons-material/ThumbUp";
@@ -8,7 +6,7 @@ import TextField from "@mui/material/TextField";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import ElderlyWomanIcon from "@mui/icons-material/ElderlyWoman";
 
-function PostCommentSort({ post_id, sort, handleSortChange }) {
+function PostCommentSort({ sort, handleSortChange }) {
   return (
     <TextField
       select
