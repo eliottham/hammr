@@ -11,6 +11,7 @@ import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import UserMenu from "./User/UserMenu";
+import NotificationMenu from "./Notification/NotificationMenu";
 
 function NavBar() {
   const client = useContext(ClientContext);
@@ -21,6 +22,10 @@ function NavBar() {
       navigate(0);
     };
     client.on("logout", onLogout);
+
+    client.socket?.on("new-comment", (comment) => {
+      console.log(comment);
+    });
 
     return () => {
       client.un("logout", onLogout);
@@ -58,15 +63,7 @@ function NavBar() {
             <AddIcon />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Notifications">
-          <IconButton
-            onClick={() =>
-              client.fire("alert", { severity: "success", message: "TODO" })
-            }
-          >
-            <NotificationsIcon />
-          </IconButton>
-        </Tooltip>
+        <NotificationMenu />
       </Grid>
       <Grid item xs={2}>
         <Box display="flex" justifyContent="flex-end">

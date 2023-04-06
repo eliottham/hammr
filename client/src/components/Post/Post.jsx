@@ -67,10 +67,25 @@ function Post() {
     };
     client.on("delete-post", onDeletePost);
 
+    const onCreateComment = (response) => {
+      if (response.post === post_id) {
+        setSort("newest");
+        setPage(1);
+        client.getComments({
+          post_id,
+          sortBy: "newest",
+          page: 1,
+        });
+      }
+    };
+
+    client.on("create-comment", onCreateComment);
+
     return () => {
       client.un("get-post", onGetPost);
       client.un("get-comments", onGetComments);
       client.un("delete-post", onDeletePost);
+      client.un("create-comment", onCreateComment);
     };
   }, [client, post_id, navigate]);
 

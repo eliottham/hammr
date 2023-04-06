@@ -16,6 +16,8 @@ const Util = {
       let value = timeUnitValues[i][1];
       if (time >= value) {
         time = parseInt(time / value);
+      } else if (time === 0 && unit === "second") {
+        return "a moment ago";
       } else if (time === 1) {
         return `1 ${unit} ago`;
       } else {

@@ -260,9 +260,11 @@ class Client extends Evt {
   async createComment(data) {
     try {
       const response = await axios.post("/comment", data);
-      if (response.data.post) {
-        this.fire("get-post", response.data.post);
-      }
+      this.fire("create-comment", response.data);
+      // if (response.data.post) {
+      // this.fire("get-post", response.data.post);
+
+      // }
     } catch (e) {
       this.checkError(e);
     }

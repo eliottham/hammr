@@ -18,6 +18,19 @@ function CreateComment({ post_id }) {
   const [comment, setComment] = useState("");
   const [username, setUsername] = useState(client.user.username);
 
+  useEffect(() => {
+    const onCreateComment = () => {
+      setSpotifyTrack();
+      setLastQuery();
+      setComment("");
+    };
+    client.on("create-comment", onCreateComment);
+
+    return () => {
+      client.un("create-comment", onCreateComment);
+    };
+  }, []);
+
   function handleTrackOnClick(t) {
     setSpotifyTrack(t);
     setLastQuery(t.name);

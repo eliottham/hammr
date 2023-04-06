@@ -7,6 +7,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const User = require("./models/user.model.js");
 const Post = require("./models/post.model.js");
 const Comment = require("./models/comment.model.js");
+const Notification = require("./models/notification.model.js");
 // const Profile = require("./modles/profile.model.js");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
@@ -25,7 +26,25 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.json());
-
+const http = require("http");
+const server = http.createServer(app);
+const io = require("socket.io")(server, {
+  cors: {
+    origins: ["http://127.0.0.1:3000"],
+    methods: ["GET", "POST"],
+    credentials: true,
+    // handlePreflightRequest: (req, res) => {
+    //   res.writeHead(200, {
+    //     "Access-Control-Allow-Origin": "http://127.0.0.1:3000",
+    //     // "Access-Control-Allow-Methods": "GET,POST",
+    //     // "Access-Control-Allow-Headers": "my-custom-header",
+    //     "Access-Control-Allow-Credentials": true,
+    //   });
+    //   res.end();
+    // },
+  },
+});
+const clientSocketMap = {};
 // // Add headers before the routes are defined
 // app.use(function (req, res, next) {
 
@@ -144,6 +163,88 @@ function generateRandomString(length) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
+}
+
+async function createAndSendNotification(data) {
+  let notification = await Notification.create(data);
+  const pipeline = [
+    {
+      $match: {
+        _id: notification._id,
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "targetUser",
+        foreignField: "_id",
+        as: "targetUser",
+      },
+    },
+    {
+      $unwind: "$targetUser",
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "fromUser",
+        foreignField: "_id",
+        as: "fromUser",
+      },
+    },
+    {
+      $unwind: "$fromUser",
+    },
+  ];
+  if (data.targetPost) {
+    pipeline.push({
+      $lookup: {
+        from: "posts",
+        localField: "targetPost",
+        foreignField: "_id",
+        as: "targetPost",
+      },
+    });
+    pipeline.push({
+      $unwind: "$targetPost",
+    });
+  }
+  if (data.targetComment) {
+    pipeline.push({
+      $lookup: {
+        from: "comments",
+        localField: "targetComment",
+        foreignField: "_id",
+        as: "targetComment",
+      },
+    });
+    pipeline.push({
+      $unwind: "$targetComment",
+    });
+  }
+  if (data.comment) {
+    pipeline.push({
+      $lookup: {
+        from: "comments",
+        localField: "comment",
+        foreignField: "_id",
+        as: "comment",
+      },
+    });
+    pipeline.push({
+      $unwind: "$comment",
+    });
+  }
+  const targetClientSocket = clientSocketMap[data.targetUser];
+  if (targetClientSocket?.connected) {
+    console.log("sending to ", targetClientSocket.id);
+    io.to(targetClientSocket.id).emit(
+      "notification",
+      (await Notification.aggregate(pipeline)).pop()
+    );
+  } else {
+    delete clientSocketMap[data.targetUser];
+  }
 }
 
 async function getAndUpdateSpotifyTokens(user, code) {
@@ -734,16 +835,14 @@ app.post(
         spotifyTrack,
         comment,
       });
-      // if the comment was made on a post, return the post in the comment to rerender
-      if (post_id) {
-        await newComment.populate({
-          path: "post",
-          populate: {
-            path: "comments",
-            populate: {
-              path: "author",
-            },
-          },
+      const post = await Post.findById(new ObjectId(post_id)).lean();
+      if (!user._id.equals(post.author)) {
+        createAndSendNotification({
+          targetUser: post.author,
+          fromUser: user._id,
+          targetPost: post._id,
+          comment: newComment._id,
+          type: "comment",
         });
       }
       res.status(200).json(newComment);
@@ -831,6 +930,9 @@ app.get("/comments", async (req, res, user) => {
               year: { $year: "$creationDate" },
               month: { $month: "$creationDate" },
               day: { $dayOfMonth: "$creationDate" },
+              hour: { $hour: "$creationDate" },
+              minute: { $minute: "$creationDate" },
+              second: { $second: "$creationDate" },
             },
           },
         },
@@ -994,6 +1096,17 @@ app.get("/search", async (req, res) => {
   }
 });
 
-app.listen(1337, () => {
+io.on("connection", (socket) => {
+  socket.on("user", (user_id) => {
+    clientSocketMap[user_id] = socket;
+    for (let entry in clientSocketMap) {
+      console.log(
+        `client_id: ${entry}, socket_id: ${clientSocketMap[entry].id}`
+      );
+    }
+  });
+});
+
+server.listen(1337, () => {
   console.log("Server started on 1337");
 });
