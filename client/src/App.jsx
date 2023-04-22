@@ -29,7 +29,7 @@ client.socket = new window.io("http://127.0.0.1:1337");
 const theme = createTheme({
   palette: {
     background: {
-      default: "#0a0a0a",
+      default: "#0e0e0e",
     },
     primary: {
       main: "#CCCCFF",

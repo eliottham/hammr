@@ -13,12 +13,15 @@ import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Notification from "./Notification";
+import Typography from "@mui/material/Typography";
+import Badge from "@mui/material/Badge";
 
 function NotificationMenu() {
   const client = useContext(ClientContext);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [unreadNotificationLength, setUnreadNotificationLength] = useState(0);
   const open = Boolean(anchorEl);
 
   useEffect(() => {
@@ -27,22 +30,34 @@ function NotificationMenu() {
     });
   }, [notifications]);
 
-  const handleClick = (event) => {
+  useEffect(() => {
+    setUnreadNotificationLength(notifications.filter((n) => !n.read).length);
+  }, [notifications]);
+
+  function handleClick(event) {
     setAnchorEl(event.currentTarget);
-  };
+    // client.updateNotificationRead({
+    //   notifications: notifications.filter((n) => !n.read),
+    // });
+  }
+
   function handleClose() {
     setAnchorEl(null);
   }
 
   return (
     <>
-      {/* <Box sx={{ display: "flex", alignItems: "center", textAlign: "center" }}> */}
       <Tooltip title="Notifications">
         <IconButton onClick={handleClick} size="small">
-          <NotificationsIcon />
+          <Badge
+            color="primary"
+            badgeContent={unreadNotificationLength}
+            invisible={!unreadNotificationLength}
+          >
+            <NotificationsIcon />
+          </Badge>
         </IconButton>
       </Tooltip>
-      {/* </Box> */}
       <Menu
         anchorEl={anchorEl}
         open={open}
@@ -51,11 +66,12 @@ function NotificationMenu() {
         PaperProps={{
           elevation: 0,
           sx: {
+            width: 360,
             overflow: "visible",
             filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
             "& .MuiAvatar-root": {
-              width: "20px",
-              height: "20px",
+              width: "40px",
+              height: "40px",
               mr: "16px",
             },
             "&:before": {
@@ -75,6 +91,9 @@ function NotificationMenu() {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
+        <MenuItem>
+          <Typography variant="h6">Notifications</Typography>
+        </MenuItem>
         {notifications.length ? (
           notifications.map((notification) => {
             return (
@@ -87,22 +106,6 @@ function NotificationMenu() {
         ) : (
           <MenuItem>No new notifications</MenuItem>
         )}
-        {/* <MenuItem onClick={() => navigate(`user/${client.user._id}`)}>
-          <Avatar src={client.user?.avatarUrl} />
-          View Profile
-        </MenuItem>
-        <MenuItem onClick={() => navigate("/user/edit")}>
-          <ListItemIcon>
-            <Settings fontSize="small" />
-          </ListItemIcon>
-          Edit Profile
-        </MenuItem>
-        <MenuItem onClick={() => client.logout()}>
-          <ListItemIcon>
-            <Logout fontSize="small" />
-          </ListItemIcon>
-          Logout
-        </MenuItem> */}
       </Menu>
     </>
   );

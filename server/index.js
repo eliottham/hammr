@@ -196,45 +196,45 @@ async function createAndSendNotification(data) {
       $unwind: "$fromUser",
     },
   ];
-  if (data.targetPost) {
-    pipeline.push({
-      $lookup: {
-        from: "posts",
-        localField: "targetPost",
-        foreignField: "_id",
-        as: "targetPost",
-      },
-    });
-    pipeline.push({
-      $unwind: "$targetPost",
-    });
-  }
-  if (data.targetComment) {
-    pipeline.push({
-      $lookup: {
-        from: "comments",
-        localField: "targetComment",
-        foreignField: "_id",
-        as: "targetComment",
-      },
-    });
-    pipeline.push({
-      $unwind: "$targetComment",
-    });
-  }
-  if (data.comment) {
-    pipeline.push({
-      $lookup: {
-        from: "comments",
-        localField: "comment",
-        foreignField: "_id",
-        as: "comment",
-      },
-    });
-    pipeline.push({
-      $unwind: "$comment",
-    });
-  }
+  // if (data.targetPost) {
+  //   pipeline.push({
+  //     $lookup: {
+  //       from: "posts",
+  //       localField: "targetPost",
+  //       foreignField: "_id",
+  //       as: "targetPost",
+  //     },
+  //   });
+  //   pipeline.push({
+  //     $unwind: "$targetPost",
+  //   });
+  // }
+  // if (data.targetComment) {
+  //   pipeline.push({
+  //     $lookup: {
+  //       from: "comments",
+  //       localField: "targetComment",
+  //       foreignField: "_id",
+  //       as: "targetComment",
+  //     },
+  //   });
+  //   pipeline.push({
+  //     $unwind: "$targetComment",
+  //   });
+  // }
+  // if (data.comment) {
+  //   pipeline.push({
+  //     $lookup: {
+  //       from: "comments",
+  //       localField: "comment",
+  //       foreignField: "_id",
+  //       as: "comment",
+  //     },
+  //   });
+  //   pipeline.push({
+  //     $unwind: "$comment",
+  //   });
+  // }
   const targetClientSocket = clientSocketMap[data.targetUser];
   if (targetClientSocket?.connected) {
     console.log("sending to ", targetClientSocket.id);
@@ -986,6 +986,14 @@ app.post(
         await Post.findByIdAndUpdate(post._id, {
           $push: { likedUsers: user._id },
         });
+        if (!user._id.equals(post.author._id)) {
+          createAndSendNotification({
+            targetUser: new ObjectId(post.author._id),
+            fromUser: user._id,
+            targetPost: new ObjectId(post._id),
+            type: "like",
+          });
+        }
       } else if (comment) {
         await user.updateOne({
           $push: { likedComments: new ObjectId(comment._id) },
@@ -993,6 +1001,14 @@ app.post(
         await Comment.findByIdAndUpdate(comment._id, {
           $push: { likedUsers: user._id },
         });
+        if (!user._id.equals(comment.author._id)) {
+          createAndSendNotification({
+            targetUser: new ObjectId(comment.author._id),
+            fromUser: user._id,
+            targetComment: new ObjectId(comment._id),
+            type: "like",
+          });
+        }
       }
       res.sendStatus(200);
     } catch (err) {
@@ -1098,11 +1114,11 @@ app.get("/search", async (req, res) => {
 
 io.on("connection", (socket) => {
   socket.on("user", (user_id) => {
-    clientSocketMap[user_id] = socket;
-    for (let entry in clientSocketMap) {
-      console.log(
-        `client_id: ${entry}, socket_id: ${clientSocketMap[entry].id}`
-      );
+    if (user_id) {
+      clientSocketMap[user_id] = socket;
+    }
+    for (let key in clientSocketMap) {
+      console.log(`client_id: ${key}, socket_id: ${clientSocketMap[key].id}`);
     }
   });
 });
