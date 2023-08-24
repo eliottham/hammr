@@ -25,15 +25,16 @@ function Notification({ notification }) {
   const [navigationPath, setNavigationPath] = useState("");
 
   useEffect(() => {
+    let fromUsername = notification.fromUser.username;
     if (notification.type === "comment" && notification.targetPost) {
-      setNotificationText("commented on your post.");
+      setNotificationText(`${fromUsername} commented on your post.`);
       setNavigationPath(`comment/${notification.comment}`);
     } else if (notification.type === "like") {
       if (notification.targetPost) {
-        setNotificationText("liked your post.");
+        setNotificationText(`${fromUsername} liked your post.`);
         setNavigationPath(`post/${notification.targetPost}`);
       } else if (notification.targetComment) {
-        setNotificationText("liked your comment.");
+        setNotificationText(`${fromUsername} liked your comment.`);
         setNavigationPath(`comment/${notification.targetComment}`);
       }
     }

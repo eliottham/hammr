@@ -1112,6 +1112,118 @@ app.get("/search", async (req, res) => {
   }
 });
 
+app.get(
+  "/lastXNotifications",
+  useAuth(async (req, res, user) => {
+    const { limit, read } = req.query;
+    try {
+      const [notifications, totalCount] = await Promise.all([
+        Notification.aggregate([
+          {
+            $match: {
+              targetUser: user._id,
+              read: read === "true",
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "fromUser",
+              foreignField: "_id",
+              as: "fromUser",
+            },
+          },
+          {
+            $unwind: "$fromUser",
+          },
+          {
+            $limit: Number(limit),
+          },
+        ]),
+        Notification.countDocuments({
+          targetUser: user._id,
+          read: read === "true",
+        }),
+      ]);
+      res.status(200).json({ notifications, totalCount });
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
+
+app.get(
+  "/notifications",
+  useAuth(async (req, res, user) => {
+    const { page } = req.query;
+    try {
+      const pipeline = [
+        {
+          $match: {
+            targetUser: user._id,
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "fromUser",
+            foreignField: "_id",
+            as: "fromUser",
+          },
+        },
+      ];
+      if (page) {
+        const result = await Notification.aggregatePaginate(
+          Notification.aggregate(pipeline),
+          {
+            page,
+            limit: 10,
+          }
+        );
+        res.status(200).json(result);
+      } else {
+        pipeline.push({
+          $limit: 10,
+        });
+        const result = await Notification.aggregate(pipeline);
+        res.status(200).json(result);
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
+
+app.put(
+  "/notifications/read",
+  useAuth(async (req, res, user) => {
+    const { notifications } = req.body;
+    const notificationIds = notifications.map(
+      (notification) => new ObjectId(notification._id)
+    );
+    try {
+      await Notification.updateMany(
+        {
+          _id: {
+            $in: notificationIds,
+          },
+        },
+        {
+          $set: {
+            read: true,
+          },
+        }
+      );
+      res.sendStatus(200);
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
+  })
+);
+
 io.on("connection", (socket) => {
   socket.on("user", (user_id) => {
     if (user_id) {

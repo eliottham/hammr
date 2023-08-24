@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
 import ClientContext from "../contexts/client_context";
 import SearchBar from "./SearchBar";

@@ -338,6 +338,37 @@ class Client extends Evt {
       this.checkError(e);
     }
   }
+
+  async getLastXNotifications(params) {
+    try {
+      const response = await axios.get("/lastXNotifications", {
+        params,
+      });
+      this.fire("last-x-notifications", response.data);
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
+  async getNotifications({ page = 1, limit = 20 }) {
+    try {
+      const response = await axios.get("/notifications", {
+        page,
+        limit,
+      });
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
+
+  async updateNotificationsRead(data) {
+    try {
+      await axios.put("/notifications/read", data);
+      this.fire("update-notifications-read");
+    } catch (e) {
+      this.checkError(e);
+    }
+  }
 }
 
 export default Client;

@@ -15,34 +15,52 @@ import MenuItem from "@mui/material/MenuItem";
 import Notification from "./Notification";
 import Typography from "@mui/material/Typography";
 import Badge from "@mui/material/Badge";
+import Link from "@mui/material/Link";
+
+const limit = 10;
 
 function NotificationMenu() {
   const client = useContext(ClientContext);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [notifications, setNotifications] = useState([]);
-  const [unreadNotificationLength, setUnreadNotificationLength] = useState(0);
+  const [notificationLength, setNotificationLength] = useState(0);
   const open = Boolean(anchorEl);
 
   useEffect(() => {
-    client.socket.on("notification", (notification) => {
-      setNotifications(notifications.concat(notification));
-    });
-  }, [notifications]);
+    const onGetLastXNotifications = (response) => {
+      setNotifications(response.notifications);
+      setNotificationLength(response.totalCount);
+    };
+    client.on("last-x-notifications", onGetLastXNotifications);
+    client.getLastXNotifications({ limit, read: false });
+
+    const onUpdateNotificationsRead = () => {
+      client.getLastXNotifications({ limit, read: false });
+    };
+    client.on("update-notifications-read", onUpdateNotificationsRead);
+
+    return () => {
+      client.un("last-x-notifications", onGetLastXNotifications);
+      client.un("update-notifications-read", onUpdateNotificationsRead);
+    };
+  }, []);
 
   useEffect(() => {
-    setUnreadNotificationLength(notifications.filter((n) => !n.read).length);
+    client.socket.on("notification", (notification) => {
+      client.getLastXNotifications({ limit, read: false });
+    });
   }, [notifications]);
 
   function handleClick(event) {
     setAnchorEl(event.currentTarget);
-    // client.updateNotificationRead({
-    //   notifications: notifications.filter((n) => !n.read),
-    // });
   }
 
   function handleClose() {
     setAnchorEl(null);
+    client.updateNotificationsRead({
+      notifications,
+    });
   }
 
   return (
@@ -51,8 +69,8 @@ function NotificationMenu() {
         <IconButton onClick={handleClick} size="small">
           <Badge
             color="primary"
-            badgeContent={unreadNotificationLength}
-            invisible={!unreadNotificationLength}
+            badgeContent={notificationLength}
+            invisible={!notificationLength}
           >
             <NotificationsIcon />
           </Badge>
@@ -91,8 +109,36 @@ function NotificationMenu() {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        <MenuItem>
-          <Typography variant="h6">Notifications</Typography>
+        <MenuItem
+          sx={{
+            opacity: "1 !important",
+            "&:hover": {
+              cursor: "default",
+              backgroundColor: "background.paper",
+            },
+          }}
+        >
+          <Box
+            display="flex"
+            direction="row"
+            alignItems="baseline"
+            justifyContent="space-between"
+            width="100%"
+          >
+            <Typography variant="h6">Notifications</Typography>
+            <Typography
+              variant="body1"
+              color="primary"
+              sx={{
+                "&:hover": {
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                },
+              }}
+            >
+              See all
+            </Typography>
+          </Box>
         </MenuItem>
         {notifications.length ? (
           notifications.map((notification) => {

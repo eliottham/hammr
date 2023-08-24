@@ -15,7 +15,7 @@ const schema = new mongoose.Schema(
       default: "like",
     },
     read: { type: Boolean, default: false },
-    creationDate: { type: Date, default: Date.now },
+    creationDate: { type: Date, default: Date.now, expires: 60 * 60 * 24 * 7 },
   },
   { collection: "notifications" }
 );
