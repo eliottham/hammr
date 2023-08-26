@@ -344,18 +344,18 @@ class Client extends Evt {
       const response = await axios.get("/lastXNotifications", {
         params,
       });
-      this.fire("last-x-notifications", response.data);
+      this.fire("get-last-x-notifications", response.data);
     } catch (e) {
       this.checkError(e);
     }
   }
 
-  async getNotifications({ page = 1, limit = 20 }) {
+  async getNotifications(params) {
     try {
       const response = await axios.get("/notifications", {
-        page,
-        limit,
+        params,
       });
+      this.fire("get-notifications", response.data);
     } catch (e) {
       this.checkError(e);
     }

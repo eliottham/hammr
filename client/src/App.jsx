@@ -21,7 +21,8 @@ import Alert from "@mui/material/Alert";
 import Slide from "@mui/material/Slide";
 import Box from "@mui/material/Box";
 import Queue from "./components/Queue/Queue";
-import SearchResults from "./components/SearchResults";
+import SearchResults from "./components/Search/SearchResults";
+import Notifications from "./components/Notification/Notifications";
 
 const client = new Client();
 client.socket = new window.io("http://127.0.0.1:1337");
@@ -198,6 +199,7 @@ const App = () => {
               <Route path="/user/:user_id" element={<UserProfile />} />
               <Route path="/user/edit" element={<EditUserProfile />} />
               <Route path="/search/:query" element={<SearchResults />} />
+              <Route path="/notifications" element={<Notifications />} />
             </Routes>
           </Box>
           <Box

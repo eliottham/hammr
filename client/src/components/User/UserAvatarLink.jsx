@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
 
-function UserAvatarLink({ user }) {
+function UserAvatarLink({ user, width = 30, height = 30 }) {
   const navigate = useNavigate();
 
   function handleClick(e) {
@@ -13,11 +13,10 @@ function UserAvatarLink({ user }) {
   return (
     <Avatar
       sx={{
-        width: 24,
-        height: 24,
+        width,
+        height,
         "&:hover": {
           cursor: "pointer",
-          textDecoration: "underline",
         },
       }}
       onClick={handleClick}

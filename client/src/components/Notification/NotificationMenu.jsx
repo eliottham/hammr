@@ -1,54 +1,48 @@
 import { useContext, useEffect, useState } from "react";
-import Grid from "@mui/material/Grid";
 import ClientContext from "../../contexts/client_context";
-import SearchBar from "../SearchBar";
-import AddIcon from "@mui/icons-material/Add";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
-import HomeIcon from "@mui/icons-material/Home";
-import Button from "@mui/material/Button";
-import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Notification from "./Notification";
 import Typography from "@mui/material/Typography";
 import Badge from "@mui/material/Badge";
-import Link from "@mui/material/Link";
+import { useNavigate } from "react-router-dom";
 
-const limit = 10;
+const limit = 7;
 
 function NotificationMenu() {
   const client = useContext(ClientContext);
-  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [notificationLength, setNotificationLength] = useState(0);
   const open = Boolean(anchorEl);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onGetLastXNotifications = (response) => {
       setNotifications(response.notifications);
       setNotificationLength(response.totalCount);
     };
-    client.on("last-x-notifications", onGetLastXNotifications);
-    client.getLastXNotifications({ limit, read: false });
+    client.on("get-last-x-notifications", onGetLastXNotifications);
+    client.getLastXNotifications({ limit });
 
     const onUpdateNotificationsRead = () => {
-      client.getLastXNotifications({ limit, read: false });
+      client.getLastXNotifications({ limit });
     };
     client.on("update-notifications-read", onUpdateNotificationsRead);
 
     return () => {
-      client.un("last-x-notifications", onGetLastXNotifications);
+      client.un("get-last-x-notifications", onGetLastXNotifications);
       client.un("update-notifications-read", onUpdateNotificationsRead);
     };
   }, []);
 
   useEffect(() => {
     client.socket.on("notification", (notification) => {
-      client.getLastXNotifications({ limit, read: false });
+      client.getLastXNotifications({ limit });
     });
   }, [notifications]);
 
@@ -135,6 +129,7 @@ function NotificationMenu() {
                   textDecoration: "underline",
                 },
               }}
+              onClick={() => navigate("/notifications")}
             >
               See all
             </Typography>
@@ -143,10 +138,9 @@ function NotificationMenu() {
         {notifications.length ? (
           notifications.map((notification) => {
             return (
-              <Notification
-                notification={notification}
-                key={notification._id}
-              />
+              <MenuItem key={notification._id}>
+                <Notification notification={notification} />
+              </MenuItem>
             );
           })
         ) : (

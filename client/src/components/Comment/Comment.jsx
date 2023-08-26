@@ -44,19 +44,17 @@ function Comment({ comment }) {
         <Grid item xs={1} sx={{ display: "flex", justifyContent: "flex-end" }}>
           <UserAvatarLink user={thisComment.author} />
         </Grid>
-        <Grid item xs={11}>
-          <Typography variant="caption" sx={{ display: "flex" }}>
-            <UsernameLink user={thisComment.author} />
-            <Typography
-              variant="caption"
-              alignContent="center"
-              color="text.secondary"
-              fontStyle={thisComment.edited ? "italic" : "default"}
-            >
-              &nbsp;&bull;&nbsp;
-              {thisComment.edited && "edited "}
-              {Util.getTimeFromNow(thisComment.creationDate)}
-            </Typography>
+        <Grid item xs={11} alignItems="baseline" display="flex">
+          <UsernameLink user={thisComment.author} />
+          <Typography
+            variant="caption"
+            alignContent="center"
+            color="text.secondary"
+            fontStyle={thisComment.edited ? "italic" : "default"}
+          >
+            &nbsp;&bull;&nbsp;
+            {thisComment.edited && "edited "}
+            {Util.getTimeFromNow(thisComment.creationDate)}
           </Typography>
         </Grid>
         <Grid item xs={1} />
@@ -97,19 +95,17 @@ function Comment({ comment }) {
         <Grid item xs={1} sx={{ display: "flex", justifyContent: "flex-end" }}>
           <UserAvatarLink user={thisComment.author} />
         </Grid>
-        <Grid item xs={23}>
-          <Typography variant="caption" sx={{ display: "flex" }}>
-            <UsernameLink user={thisComment.author} />
-            <Typography
-              variant="caption"
-              alignContent="center"
-              color="text.secondary"
-              fontStyle={thisComment.edited ? "italic" : "default"}
-            >
-              &nbsp;&bull;&nbsp;
-              {thisComment.edited && "edited "}
-              {Util.getTimeFromNow(thisComment.creationDate)}
-            </Typography>
+        <Grid item xs={23} alignItems="baseline" display="flex">
+          <UsernameLink user={thisComment.author} />
+          <Typography
+            variant="caption"
+            alignContent="center"
+            color="text.secondary"
+            fontStyle={thisComment.edited ? "italic" : "default"}
+          >
+            &nbsp;&bull;&nbsp;
+            {thisComment.edited && "edited "}
+            {Util.getTimeFromNow(thisComment.creationDate)}
           </Typography>
         </Grid>
         <Grid item xs={1} />

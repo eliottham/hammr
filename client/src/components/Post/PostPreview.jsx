@@ -41,7 +41,7 @@ function PostPreview({ post }) {
         border: "1px solid #1e1e1e",
         "&:hover": {
           cursor: "pointer",
-          borderColor: "white",
+          borderColor: "primary.main",
         },
       }}
       onClick={() => navigate(`/post/${post._id}`)}
@@ -57,7 +57,7 @@ function PostPreview({ post }) {
         >
           <UserAvatarLink user={post.author} />
         </Grid>
-        <Grid item xs={11}>
+        <Grid item xs={11} alignItems="baseline" display="flex">
           <UsernameLink user={post.author} />
           <Typography
             variant="caption"

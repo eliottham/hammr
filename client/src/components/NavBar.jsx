@@ -1,9 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import Grid from "@mui/material/Grid";
 import ClientContext from "../contexts/client_context";
-import SearchBar from "./SearchBar";
+import SearchBar from "./Search/SearchBar";
 import AddIcon from "@mui/icons-material/Add";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import HomeIcon from "@mui/icons-material/Home";

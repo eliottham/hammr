@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
-import ClientContext from "../contexts/client_context";
-import PostPreview from "./Post/PostPreview";
+import ClientContext from "../../contexts/client_context";
+import PostPreview from "../Post/PostPreview";
 import Box from "@mui/material/Box";
 import { styled } from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
@@ -10,7 +10,7 @@ import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import SearchIcon from "@mui/icons-material/Search";
 import Typography from "@mui/material/Typography";
 import { useParams } from "react-router-dom";
-import UserProfilePreview from "./User/UserProfilePreview";
+import UserProfilePreview from "../User/UserProfilePreview";
 
 const Item = styled(Paper)(({ theme }) => ({
   position: "relative",

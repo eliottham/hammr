@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Typography from "@mui/material/Typography";
 
-function UsernameLink({ user, variant }) {
+function UsernameLink({ user, variant = "body1" }) {
   const navigate = useNavigate();
 
   function handleClick(e) {
@@ -18,7 +18,7 @@ function UsernameLink({ user, variant }) {
           textDecoration: "underline",
         },
       }}
-      variant={variant || "caption"}
+      variant={variant}
       onClick={handleClick}
     >
       {user?.username}

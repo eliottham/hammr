@@ -114,17 +114,10 @@ function Post() {
       <Grid item>
         <Item>
           <Grid container spacing={1} alignItems="center">
-            <Grid
-              item
-              xs={1}
-              sx={{
-                display: "flex",
-                justifyContent: "flex-end",
-              }}
-            >
+            <Grid item xs={1} display="flex" justifyContent="flex-end">
               <UserAvatarLink user={post.author} />
             </Grid>
-            <Grid item xs={11}>
+            <Grid item xs={11} alignItems="baseline" display="flex">
               <UsernameLink user={post.author} />
               <Typography
                 variant="caption"

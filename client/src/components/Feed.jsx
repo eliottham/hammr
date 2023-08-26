@@ -198,14 +198,23 @@ function Feed() {
           <PostPreview post={post} />
         </Box>
       ))}
-      <Box alignItems="center" mt="10px" justifyContent="center" display="flex">
-        <Pagination
-          page={page}
-          count={totalPages}
-          shape="rounded"
-          onChange={handlePageChange}
-        />
-      </Box>
+      {posts.length ? (
+        <Box
+          alignItems="center"
+          mt="10px"
+          justifyContent="center"
+          display="flex"
+        >
+          <Pagination
+            page={page}
+            count={totalPages}
+            shape="rounded"
+            onChange={handlePageChange}
+          />
+        </Box>
+      ) : (
+        <></>
+      )}
     </Box>
   );
 }

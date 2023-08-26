@@ -1115,34 +1115,51 @@ app.get("/search", async (req, res) => {
 app.get(
   "/lastXNotifications",
   useAuth(async (req, res, user) => {
-    const { limit, read } = req.query;
+    const { limit, unread } = req.query;
     try {
+      const pipeline = [
+        {
+          $lookup: {
+            from: "users",
+            localField: "fromUser",
+            foreignField: "_id",
+            as: "fromUser",
+          },
+        },
+        {
+          $unwind: "$fromUser",
+        },
+      ];
+      if (unread === "true") {
+        pipeline.unshift({
+          $match: {
+            targetUser: user._id,
+            read: false,
+          },
+        });
+        pipeline.push({
+          $sort: {
+            creationDate: -1,
+          },
+        });
+      } else {
+        pipeline.unshift({
+          $match: {
+            targetUser: user._id,
+          },
+        });
+        pipeline.push({
+          $sort: { read: 1, creationDate: -1 },
+        });
+      }
+      pipeline.push({
+        $limit: Number(limit),
+      });
       const [notifications, totalCount] = await Promise.all([
-        Notification.aggregate([
-          {
-            $match: {
-              targetUser: user._id,
-              read: read === "true",
-            },
-          },
-          {
-            $lookup: {
-              from: "users",
-              localField: "fromUser",
-              foreignField: "_id",
-              as: "fromUser",
-            },
-          },
-          {
-            $unwind: "$fromUser",
-          },
-          {
-            $limit: Number(limit),
-          },
-        ]),
+        Notification.aggregate(pipeline),
         Notification.countDocuments({
           targetUser: user._id,
-          read: read === "true",
+          read: false,
         }),
       ]);
       res.status(200).json({ notifications, totalCount });
@@ -1156,14 +1173,9 @@ app.get(
 app.get(
   "/notifications",
   useAuth(async (req, res, user) => {
-    const { page } = req.query;
+    const { unread, limit, page } = req.query;
     try {
       const pipeline = [
-        {
-          $match: {
-            targetUser: user._id,
-          },
-        },
         {
           $lookup: {
             from: "users",
@@ -1172,19 +1184,44 @@ app.get(
             as: "fromUser",
           },
         },
+        {
+          $unwind: "$fromUser",
+        },
       ];
+      if (unread === "true") {
+        pipeline.unshift({
+          $match: {
+            targetUser: user._id,
+            read: false,
+          },
+        });
+        pipeline.push({
+          $sort: {
+            creationDate: -1,
+          },
+        });
+      } else {
+        pipeline.unshift({
+          $match: {
+            targetUser: user._id,
+          },
+        });
+        pipeline.push({
+          $sort: { read: 1, creationDate: -1 },
+        });
+      }
       if (page) {
         const result = await Notification.aggregatePaginate(
           Notification.aggregate(pipeline),
           {
             page,
-            limit: 10,
+            limit: Number(limit),
           }
         );
         res.status(200).json(result);
       } else {
         pipeline.push({
-          $limit: 10,
+          $limit: Number(limit),
         });
         const result = await Notification.aggregate(pipeline);
         res.status(200).json(result);
