@@ -24,7 +24,7 @@ function NotificationMenu() {
   useEffect(() => {
     const onGetLastXNotifications = (response) => {
       setNotifications(response.notifications);
-      setNotificationLength(response.totalCount);
+      setNotificationLength(response.unreadTotalCount);
     };
     client.on("get-last-x-notifications", onGetLastXNotifications);
     client.getLastXNotifications({ limit });
@@ -37,14 +37,22 @@ function NotificationMenu() {
     return () => {
       client.un("get-last-x-notifications", onGetLastXNotifications);
       client.un("update-notifications-read", onUpdateNotificationsRead);
+      client.socket.removeAllListeners("notification");
     };
   }, []);
 
   useEffect(() => {
+    client.socket.removeAllListeners("notification");
     client.socket.on("notification", (notification) => {
-      client.getLastXNotifications({ limit });
+      const newNotifications = notifications;
+      if (newNotifications.length === limit) {
+        newNotifications.splice(limit - 1, 1);
+      }
+      newNotifications.unshift(notification);
+      setNotifications(notifications);
+      setNotificationLength(notificationLength + 1);
     });
-  }, [notifications]);
+  }, [notifications, notificationLength]);
 
   function handleClick(event) {
     setAnchorEl(event.currentTarget);
@@ -75,6 +83,7 @@ function NotificationMenu() {
         open={open}
         onClose={handleClose}
         onClick={handleClose}
+        disableScrollLock
         PaperProps={{
           elevation: 0,
           sx: {

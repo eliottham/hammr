@@ -75,8 +75,8 @@ app.post("/register", async (req, res) => {
   console.log(req.body);
   try {
     const user = await User.create({
-      username: req.body.username,
       email: req.body.email,
+      username: req.body.username,
       password: req.body.password,
     });
     const token = jwt.sign(
@@ -94,12 +94,19 @@ app.post("/register", async (req, res) => {
     res.cookie("token", token, { httpOnly: true });
     res.sendStatus(200);
   } catch (err) {
+    const errors = err.errors || {};
     // duplicate key error
     if (err.code === 11000) {
-      res.status(409).json({ errorFields: Object.keys(err.keyValue) });
-    } else {
-      res.status(500).json(err);
+      const key = Object.keys(err.keyValue).shift();
+      errors[key] = {
+        value: err.keyValue[key],
+        message:
+          key === "email"
+            ? "Email address already in use"
+            : "Username already in use",
+      };
     }
+    res.status(409).json({ errors });
   }
 });
 
@@ -1155,14 +1162,14 @@ app.get(
       pipeline.push({
         $limit: Number(limit),
       });
-      const [notifications, totalCount] = await Promise.all([
+      const [notifications, unreadTotalCount] = await Promise.all([
         Notification.aggregate(pipeline),
         Notification.countDocuments({
           targetUser: user._id,
           read: false,
         }),
       ]);
-      res.status(200).json({ notifications, totalCount });
+      res.status(200).json({ notifications, unreadTotalCount });
     } catch (err) {
       console.log(err);
       res.status(500).send(err);

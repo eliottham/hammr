@@ -5,11 +5,43 @@ const User = mongoose.model(
   "User",
   new mongoose.Schema(
     {
-      username: { type: String, required: true, unique: true, minLength: 4 },
-      email: { type: String, required: true, unique: true },
+      email: {
+        type: String,
+        required: true,
+        unique: true,
+        validate: {
+          validator: (v) => {
+            return /([!#-'*+/-9=?A-Z^-~-]+(\.[!#-'*+/-9=?A-Z^-~-]+)*|"([]!#-[^-~ \t]|(\\[\t -~]))+")@([!#-'*+/-9=?A-Z^-~-]+(\.[!#-'*+/-9=?A-Z^-~-]+)*|\[[\t -Z^-~]*])/.test(
+              v
+            );
+          },
+          message: "Email is not valid",
+        },
+      },
+      username: {
+        type: String,
+        required: true,
+        unique: true,
+        validate: {
+          validator: (v) => {
+            return v.length >= 4;
+          },
+          message: "Username must be at least 4 characters long",
+        },
+      },
       avatarUrl: { type: String },
       avatarPublicId: { type: String },
-      password: { type: String, required: true, minLength: 5, select: false },
+      password: {
+        type: String,
+        required: true,
+        select: false,
+        validate: {
+          validator: (v) => {
+            return v.length >= 8;
+          },
+          message: "Password must be at least 8 characters long",
+        },
+      },
       firstName: { type: String },
       lastName: { type: String },
       spotifyAccessToken: { type: String },

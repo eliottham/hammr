@@ -16,6 +16,7 @@ function PostCommentSort({ sort, handleSortChange }) {
       fullWidth
       value={sort}
       onChange={handleSortChange}
+      SelectProps={{ MenuProps: { disableScrollLock: true } }}
     >
       <MenuItem value={"top"}>
         <Box display="flex" alignItems="center" justifyContent="flex-start">

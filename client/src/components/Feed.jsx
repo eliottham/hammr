@@ -121,6 +121,7 @@ function Feed() {
               label="Category"
               value={category}
               onChange={handleCategoryChange}
+              SelectProps={{ MenuProps: { disableScrollLock: true } }}
             >
               <MenuItem value={POST_CATEGORY.ALL}>
                 <Box

@@ -17,13 +17,27 @@ function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [confirmPwError, setConfirmPasswordError] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
+  const [emailError, setEmailError] = useState({});
+  const [usernameError, setUsernameError] = useState({});
+  const [passwordError, setPasswordError] = useState({});
+  const [confirmPwError, setConfirmPasswordError] = useState(false);
 
   useState(() => {
-    const onRegisterError = ({ errorFields }) => {
-      console.log(errorFields);
-      // TODO add error messages for fields
+    const onRegisterError = ({ errors = {} }) => {
+      setEmailError({});
+      setUsernameError({});
+      setPasswordError({});
+      setDisableButton(true);
+      for (const error in errors) {
+        if (error === "email") {
+          setEmailError(errors[error]);
+        } else if (error === "username") {
+          setUsernameError(errors[error]);
+        } else if (error === "password") {
+          setPasswordError(errors[error]);
+        }
+      }
     };
     client.on("register-error", onRegisterError);
 
@@ -38,7 +52,7 @@ function Register() {
         elevation={10}
         sx={{
           padding: "20px",
-          height: "55vh",
+          height: "65vh",
           width: "25vw",
           margin: "100px auto",
         }}
@@ -53,7 +67,12 @@ function Register() {
           fullWidth
           required
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          error={emailError.value === email}
+          helperText={emailError.value === email && emailError.message}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setDisableButton(e.target.value === emailError.value);
+          }}
           style={{ paddingBottom: "8px" }}
         />
         <TextField
@@ -62,7 +81,12 @@ function Register() {
           fullWidth
           required
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          error={usernameError.value === username}
+          helperText={usernameError.value === username && usernameError.message}
+          onChange={(e) => {
+            setUsername(e.target.value);
+            setDisableButton(e.target.value === usernameError.value);
+          }}
           style={{ paddingBottom: "8px" }}
         />
         <TextField
@@ -72,12 +96,20 @@ function Register() {
           fullWidth
           required
           value={password}
+          error={passwordError.value === password}
+          helperText={passwordError.value === password && passwordError.message}
           onChange={(e) => {
             setPassword(e.target.value);
             setConfirmPasswordError(
               !!(confirmPassword && e.target.value !== confirmPassword)
             );
-            setDisableButton(e.target.value !== confirmPassword);
+            if (e.target.value.length >= 8) {
+              setPasswordError({});
+            }
+            setDisableButton(
+              e.target.value !== confirmPassword ||
+                e.target.value === passwordError.value
+            );
           }}
           style={{ paddingBottom: "8px" }}
         />
@@ -115,7 +147,7 @@ function Register() {
         >
           Sign Up
         </Button>
-        <div style={{ paddingTop: 30, textAlign: "center" }}>
+        <div style={{ paddingTop: 40, textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center" }}>
             Already have an account?&nbsp;
             <Typography

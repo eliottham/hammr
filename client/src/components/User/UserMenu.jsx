@@ -40,6 +40,7 @@ function UserMenu() {
         open={open}
         onClose={handleClose}
         onClick={handleClose}
+        disableScrollLock
         PaperProps={{
           elevation: 0,
           sx: {

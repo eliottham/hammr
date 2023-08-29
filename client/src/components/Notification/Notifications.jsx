@@ -31,6 +31,9 @@ function Notifications() {
     const onGetNotifications = (response) => {
       setNotifications(response.docs);
       setTotalPages(response.totalPages);
+      client.updateNotificationsRead({
+        notifications: response.docs,
+      });
     };
     client.on("get-notifications", onGetNotifications);
 
