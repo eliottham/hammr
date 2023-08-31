@@ -172,6 +172,12 @@ function generateRandomString(length) {
   return result;
 }
 
+function cleanUser(user) {
+  delete user.password;
+  delete user.spotifyAccessToken;
+  delete user.spotifyRefreshToken;
+}
+
 async function createAndSendNotification(data) {
   let notification = await Notification.create(data);
   const pipeline = [
@@ -245,10 +251,10 @@ async function createAndSendNotification(data) {
   const targetClientSocket = clientSocketMap[data.targetUser];
   if (targetClientSocket?.connected) {
     console.log("sending to ", targetClientSocket.id);
-    io.to(targetClientSocket.id).emit(
-      "notification",
-      (await Notification.aggregate(pipeline)).pop()
-    );
+    notification = (await Notification.aggregate(pipeline)).pop();
+    cleanUser(notification.targetUser);
+    cleanUser(notification.fromUser);
+    io.to(targetClientSocket.id).emit("notification", notification);
   } else {
     delete clientSocketMap[data.targetUser];
   }
@@ -498,6 +504,7 @@ app.get("/user/:user_id", async (req, res) => {
       .lean()
       .populate("posts")
       .populate("comments");
+    cleanUser(user);
     res.status(200).json(user);
   } catch (err) {
     console.log(err);
@@ -511,6 +518,7 @@ app.get("/user/:user_id/content", async (req, res) => {
       .lean()
       .populate("posts")
       .populate("comments");
+    cleanUser(user);
     res.status(200).json(user);
   } catch (err) {
     console.log(err);
@@ -584,6 +592,7 @@ app.put(
         },
         { new: true }
       );
+      cleanUser(updatedUser);
       res.status(200).json(updatedUser);
     } catch (err) {
       console.log(err);
@@ -615,6 +624,7 @@ app.post(
           },
           { new: true }
         ).lean();
+        cleanUser(targetUserDocument);
         res.status(200).json(targetUserDocument);
       }
     } catch (err) {
@@ -642,6 +652,7 @@ app.post(
           },
           { new: true }
         ).lean();
+        cleanUser(targetUserDocument);
         res.status(200).json(targetUserDocument);
       }
     } catch (err) {
@@ -681,11 +692,15 @@ app.put(
         { new: true }
       )
         .lean()
-        .populate("author")
+        .populate({
+          path: "author",
+          select: "-password -spotifyAccessToken -spotifyRefreshToken",
+        })
         .populate({
           path: "comments",
           populate: {
             path: "author",
+            select: "-password -spotifyAccessToken -spotifyRefreshToken",
           },
         });
       res.status(200).json(post);
@@ -716,7 +731,10 @@ app.get("/post/:post_id", async (req, res) => {
   try {
     const post = await Post.findById(new ObjectId(req.params.post_id))
       .lean()
-      .populate("author");
+      .populate({
+        path: "author",
+        select: "-password -spotifyAccessToken -spotifyRefreshToken",
+      });
     post ? res.status(200).json(post) : res.status(404).send("Post not found");
   } catch (err) {
     console.log(err);
@@ -820,10 +838,19 @@ app.get("/posts/", async (req, res) => {
         });
       }
     }
-    let result = await Post.aggregatePaginate(Post.aggregate(pipeline), {
-      page,
-      limit: 20,
-    });
+    let result = await Post.aggregatePaginate(
+      Post.aggregate(pipeline).project({
+        author: {
+          password: 0,
+          spotifyAccessToken: 0,
+          spotifyRefreshToken: 0,
+        },
+      }),
+      {
+        page,
+        limit: 20,
+      }
+    );
     res.status(200).json(result);
   } catch (err) {
     console.log(err);
@@ -881,7 +908,10 @@ app.put(
             originalComment._id,
             data,
             { new: true } // return updated doc
-          ).populate("author");
+          ).populate({
+            path: "author",
+            select: "-password -spotifyAccessToken -spotifyRefreshToken",
+          });
           res.status(200).json(newComment);
         } else {
           res.status(200).json(originalComment);
@@ -950,10 +980,19 @@ app.get("/comments", async (req, res, user) => {
         },
       });
     }
-    let result = await Comment.aggregatePaginate(Comment.aggregate(pipeline), {
-      page,
-      limit: 20,
-    });
+    let result = await Comment.aggregatePaginate(
+      Comment.aggregate(pipeline).project({
+        author: {
+          password: 0,
+          spotifyAccessToken: 0,
+          spotifyRefreshToken: 0,
+        },
+      }),
+      {
+        page,
+        limit: 20,
+      }
+    );
     res.status(200).json(result);
   } catch (err) {
     console.log(err);
@@ -1083,7 +1122,7 @@ app.get("/search", async (req, res) => {
             },
           },
         ],
-      }),
+      }).select("-password -spotifyAccessToken -spotifyRefreshToken"),
       Post.find({
         $or: [
           {
@@ -1110,7 +1149,10 @@ app.get("/search", async (req, res) => {
             },
           },
         ],
-      }).populate("author"),
+      }).populate({
+        path: "author",
+        select: "-password -spotifyAccessToken -spotifyRefreshToken",
+      }),
     ]);
     res.status(200).json({ users, posts });
   } catch (err) {
@@ -1163,7 +1205,13 @@ app.get(
         $limit: Number(limit),
       });
       const [notifications, unreadTotalCount] = await Promise.all([
-        Notification.aggregate(pipeline),
+        Notification.aggregate(pipeline).project({
+          fromUser: {
+            password: 0,
+            spotifyAccessToken: 0,
+            spotifyRefreshToken: 0,
+          },
+        }),
         Notification.countDocuments({
           targetUser: user._id,
           read: false,
@@ -1219,7 +1267,13 @@ app.get(
       }
       if (page) {
         const result = await Notification.aggregatePaginate(
-          Notification.aggregate(pipeline),
+          Notification.aggregate(pipeline).project({
+            fromUser: {
+              password: 0,
+              spotifyAccessToken: 0,
+              spotifyRefreshToken: 0,
+            },
+          }),
           {
             page,
             limit: Number(limit),
@@ -1230,7 +1284,13 @@ app.get(
         pipeline.push({
           $limit: Number(limit),
         });
-        const result = await Notification.aggregate(pipeline);
+        const result = await Notification.aggregate(pipeline).project({
+          fromUser: {
+            password: 0,
+            spotifyAccessToken: 0,
+            spotifyRefreshToken: 0,
+          },
+        });
         res.status(200).json(result);
       }
     } catch (err) {
