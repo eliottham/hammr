@@ -22,10 +22,6 @@ function NavBar() {
     };
     client.on("logout", onLogout);
 
-    client.socket?.on("new-comment", (comment) => {
-      console.log(comment);
-    });
-
     return () => {
       client.un("logout", onLogout);
     };

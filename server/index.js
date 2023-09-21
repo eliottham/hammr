@@ -15,6 +15,7 @@ const axios = require("axios");
 const bodyParser = require("body-parser");
 const upload = require("multer")();
 const cloudinary = require("cloudinary");
+const bcrypt = require("bcrypt-nodejs");
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -22,15 +23,28 @@ cloudinary.config({
 });
 const { Readable } = require("stream");
 
-app.use(cors());
+const origin =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : "https://hammr.onrender.com";
+const cookieConfig = { httpOnly: true, secure: true, sameSite: "none" };
+
+app.use(
+  cors({
+    credentials: true,
+    origin: origin,
+    exposedHeaders: ["set-cookie"],
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.json());
 const http = require("http");
 const server = http.createServer(app);
+
 const io = require("socket.io")(server, {
   cors: {
-    origins: ["http://127.0.0.1:3000"],
+    origins: [origin],
     methods: ["GET", "POST"],
     credentials: true,
     // handlePreflightRequest: (req, res) => {
@@ -45,54 +59,42 @@ const io = require("socket.io")(server, {
   },
 });
 const clientSocketMap = {};
-// // Add headers before the routes are defined
-// app.use(function (req, res, next) {
 
-//   // Website you wish to allow to connect
-//   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
-
-//   // Request methods you wish to allow
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE')
-
-//   // Request headers you wish to allow
-//   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type')
-
-//   // Set to true if you need the website to include cookies in the requests sent
-//   // to the API (e.g. in case you use sessions)
-//   res.setHeader('Access-Control-Allow-Credentials', true)
-
-//   // Pass to next layer of middleware
-//   next()
-// })
-
-mongoose.connect("mongodb://localhost:27017/zam");
+mongoose.connect(
+  process.env.NODE_ENV === "development"
+    ? process.env.DEV_DATABASE_URL
+    : process.env.DATABASE_URL
+);
 
 app.get("/token", (req, res) =>
-  res.json({ status: 200, token: req.cookies.token })
+  res.json({ status: 200, token: req.cookies.session_token })
 );
 
 app.post("/register", async (req, res) => {
-  console.log(req.body);
   try {
     const user = await User.create({
       email: req.body.email,
       username: req.body.username,
-      password: req.body.password,
     });
-    const token = jwt.sign(
-      {
-        _id: user._id,
-        email: user.email,
-        username: user.username,
-      },
-      // JWT_SECRET,
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "72h",
-      }
-    );
-    res.cookie("token", token, { httpOnly: true });
-    res.sendStatus(200);
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(req.body.password, salt, null, async (err, hash) => {
+        user.password = hash;
+        await user.save();
+        const token = jwt.sign(
+          {
+            _id: user._id,
+            email: user.email,
+            username: user.username,
+          },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: "72h",
+          }
+        );
+        res.cookie("session_token", token, cookieConfig);
+        res.sendStatus(200);
+      });
+    });
   } catch (err) {
     const errors = err.errors || {};
     // duplicate key error
@@ -111,47 +113,80 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  console.log(req.body);
   try {
     const user = await User.findOne({
       email: req.body.email,
-      password: req.body.password,
-    });
-
+    }).select("+password");
     if (user) {
-      const token = jwt.sign(
-        {
-          _id: user._id,
-          email: user.email,
-          username: user.username,
-        },
-        // JWT_SECRET,
-        process.env.JWT_SECRET,
-        {
-          expiresIn: "72h",
+      bcrypt.compare(req.body.password, user.password, (err, result) => {
+        if (result) {
+          const token = jwt.sign(
+            {
+              _id: user._id,
+              email: user.email,
+              username: user.username,
+            },
+            process.env.JWT_SECRET,
+            {
+              expiresIn: "72h",
+            }
+          );
+          res.cookie("session_token", token, cookieConfig);
+          res.sendStatus(200);
+        } else {
+          res.status(401).json({
+            error: "Password is incorrect",
+          });
         }
-      );
-      res.cookie("token", token, { httpOnly: true });
-      res.sendStatus(200);
+      });
     } else {
       res.status(401).json({
-        error: "Incorrect username or password",
+        error: "Email could not be found",
       });
     }
   } catch (err) {
+    console.log(err);
     res.status(500).json({ error: err.message });
   }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("session_token");
   res.end();
+});
+
+app.get("/current-user", async (req, res) => {
+  const currentUser = {
+    _id: null,
+    username: null,
+    spotifyAuthorized: false,
+  };
+  try {
+    const token = req.cookies["session_token"];
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(new ObjectId(decoded._id));
+      if (user) {
+        currentUser._id = user._id;
+        currentUser.username = user.username;
+        currentUser.spotifyAuthorized = !!user.spotifyAccessToken;
+        currentUser.avatarUrl = user.avatarUrl;
+      }
+    }
+    res.status(200).json(currentUser);
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      res.status(401).json(currentUser);
+    } else {
+      res.status(500).send(err);
+    }
+  }
 });
 
 function useAuth(handler) {
   return async (req, res) => {
     try {
-      const token = req.cookies["token"];
+      const token = req.cookies["session_token"];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await User.findById(new ObjectId(decoded._id));
       handler(req, res, user);
@@ -250,7 +285,6 @@ async function createAndSendNotification(data) {
   // }
   const targetClientSocket = clientSocketMap[data.targetUser];
   if (targetClientSocket?.connected) {
-    console.log("sending to ", targetClientSocket.id);
     notification = (await Notification.aggregate(pipeline)).pop();
     cleanUser(notification.targetUser);
     cleanUser(notification.fromUser);
@@ -264,7 +298,10 @@ async function getAndUpdateSpotifyTokens(user, code) {
   const params = code
     ? {
         code: code || null,
-        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+        redirect_uri:
+          process.env.NODE_ENV === "development"
+            ? process.env.DEV_SPOTIFY_REDIRECT_URI
+            : process.env.SPOTIFY_REDIRECT_URI,
         grant_type: "authorization_code",
       }
     : {
@@ -334,7 +371,7 @@ app.get(
         .toString();
     } else {
       getAndUpdateSpotifyTokens(user, req.query.code);
-      res.redirect("http://localhost:3000/");
+      res.redirect(origin);
     }
   })
 );
@@ -471,32 +508,6 @@ app.post(
     });
   })
 );
-
-app.get("/current-user", async (req, res) => {
-  const currentUser = {
-    _id: null,
-    username: null,
-    spotifyAuthorized: false,
-  };
-  try {
-    const token = req.cookies["token"];
-    if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(new ObjectId(decoded._id));
-      currentUser._id = user._id;
-      currentUser.username = user.username;
-      currentUser.spotifyAuthorized = !!user.spotifyAccessToken;
-      currentUser.avatarUrl = user.avatarUrl;
-    }
-    res.status(200).json(currentUser);
-  } catch (err) {
-    if (err.name === "TokenExpiredError") {
-      res.status(401).json(currentUser);
-    } else {
-      res.status(500).send(err);
-    }
-  }
-});
 
 app.get("/user/:user_id", async (req, res) => {
   try {
@@ -747,7 +758,7 @@ app.get("/posts/", async (req, res) => {
   let user;
   if (category === "Following") {
     try {
-      const token = req.cookies["token"];
+      const token = req.cookies["session_token"];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       user = await User.findById(new ObjectId(decoded._id));
     } catch (err) {

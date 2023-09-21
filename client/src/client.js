@@ -1,6 +1,12 @@
 import Evt from "./evt";
 import axios from "axios";
 
+axios.defaults.baseURL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:1337"
+    : "https://hammr-server.onrender.com";
+axios.defaults.withCredentials = true;
+
 class Client extends Evt {
   checkError(e) {
     const status = e.response && e.response.status;
@@ -147,7 +153,6 @@ class Client extends Evt {
   }
 
   async getSpotifyTokens(args) {
-    console.log("get spotify tokens");
     try {
       const response = await axios.get("/spotify-tokens");
       if (Object.keys(response.data).length === 0) {
@@ -164,7 +169,6 @@ class Client extends Evt {
   _checkForUpdatedSpotifyTokens({ spotifyAccessToken, track }) {
     // if expired tokens were refreshed on the server, fire the get-spotify-tokens event with the new token to recreate the Spotify web player
     if (spotifyAccessToken) {
-      console.log("spotify token updated");
       this.fire("get-spotify-tokens", { spotifyAccessToken, track });
     }
   }

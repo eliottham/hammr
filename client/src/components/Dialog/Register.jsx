@@ -34,8 +34,6 @@ function Register() {
           setEmailError(errors[error]);
         } else if (error === "username") {
           setUsernameError(errors[error]);
-        } else if (error === "password") {
-          setPasswordError(errors[error]);
         }
       }
     };
@@ -105,6 +103,11 @@ function Register() {
             );
             if (e.target.value.length >= 8) {
               setPasswordError({});
+            } else {
+              setPasswordError({
+                value: e.target.value,
+                message: "Password must be at least 8 characters long",
+              });
             }
             setDisableButton(
               e.target.value !== confirmPassword ||

@@ -1,6 +1,4 @@
 import { useContext, useEffect, useState } from "react";
-import ListItem from "@mui/material/ListItem";
-import ListItemText from "@mui/material/ListItemText";
 import Notification from "./Notification";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";

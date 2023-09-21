@@ -6,8 +6,6 @@ import {
   TextField,
   Button,
   Typography,
-  Checkbox,
-  FormControlLabel,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ClientContext from "../../contexts/client_context";
@@ -92,10 +90,6 @@ function Login() {
             <br />
           </Typography>
         )}
-        <FormControlLabel
-          control={<Checkbox color="primary" />}
-          label="Remember me"
-        />
         <Button
           type="submit"
           color="primary"

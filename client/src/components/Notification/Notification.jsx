@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
-import Avatar from "@mui/material/Avatar";
 import UsernameLink from "../User/UsernameLink";
 import UserAvatarLink from "../User/UserAvatarLink";
 import Typography from "@mui/material/Typography";

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { CssBaseline, Dialog } from "@mui/material";
@@ -25,7 +25,7 @@ import SearchResults from "./components/Search/SearchResults";
 import Notifications from "./components/Notification/Notifications";
 
 const client = new Client();
-client.socket = new window.io("http://127.0.0.1:1337");
+client.socket = new window.io("https://hammr-server.onrender.com/");
 
 const theme = createTheme({
   palette: {
@@ -84,11 +84,9 @@ const App = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("app mount");
     const onGetCurrentUser = (user) => {
       client.user = user;
       client.socket.emit("user", user._id);
-      console.log("manual rerender");
       // Manually rerender so all child components have access to current user through the client context
       rerender(!render);
     };
@@ -96,9 +94,7 @@ const App = () => {
     client.getCurrentUser();
 
     const onLogin = () => {
-      console.log("on login");
       setOpenLoginDialog(false);
-      console.log("navigate");
       navigate(0);
     };
     client.on("login", onLogin);

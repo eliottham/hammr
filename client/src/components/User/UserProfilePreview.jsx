@@ -1,7 +1,7 @@
-import { useState, useContext, useEffect } from "react";
+import { useContext } from "react";
 import Paper from "@mui/material/Paper";
 import { styled } from "@mui/material/styles";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ClientContext from "../../contexts/client_context";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
@@ -9,10 +9,7 @@ import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import ButtonGroup from "@mui/material/ButtonGroup";
 import FollowButton from "../FollowButton";
-import PostPreview from "../Post/PostPreview";
-import Comment from "../Comment/Comment";
 
 function UserProfilePreview({ user }) {
   const client = useContext(ClientContext);

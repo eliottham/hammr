@@ -27,7 +27,7 @@ function NotificationMenu() {
       setNotificationLength(response.unreadTotalCount);
     };
     client.on("get-last-x-notifications", onGetLastXNotifications);
-    client.getLastXNotifications({ limit });
+    client.user._id && client.getLastXNotifications({ limit });
 
     const onUpdateNotificationsRead = () => {
       client.getLastXNotifications({ limit });

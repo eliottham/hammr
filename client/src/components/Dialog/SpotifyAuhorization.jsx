@@ -21,7 +21,7 @@ function SpotifyAuthorization() {
         </Typography>
         <Button
           variant="contained"
-          href="http://localhost:1337/spotify-authorization"
+          href="https://hammr-server.onrender.com/spotify-authorization"
           onClick={() => client.fire("spotify-authorization-close-dialog")}
         >
           Authorize
