@@ -151,7 +151,7 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("session_token");
+  res.clearCookie("session_token", cookieConfig);
   res.end();
 });
 
