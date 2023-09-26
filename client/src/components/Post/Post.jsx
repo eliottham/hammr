@@ -182,7 +182,9 @@ function Post() {
                 <>
                   <Grid item xs={1} />
                   <Grid item xs={10}>
-                    <Typography variant="body1">{post.description}</Typography>
+                    <Typography variant="body1" sx={{ whiteSpace: "pre-line" }}>
+                      {post.description}
+                    </Typography>
                   </Grid>
                   <Grid item xs={1} />
                 </>

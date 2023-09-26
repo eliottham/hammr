@@ -258,9 +258,8 @@ function UserProfile() {
               <Comment comment={comment} />
             </Paper>
           ))}
-        {((displayCategory === DISPLAY_CATEGORIES.POST && posts.length) ||
-          (displayCategory === DISPLAY_CATEGORIES.COMMENT &&
-            comments.length)) && (
+        {(displayCategory === DISPLAY_CATEGORIES.POST && posts.length) ||
+        (displayCategory === DISPLAY_CATEGORIES.COMMENT && comments.length) ? (
           <Box
             alignItems="center"
             mt="10px"
@@ -274,6 +273,8 @@ function UserProfile() {
               onChange={handlePageChange}
             />
           </Box>
+        ) : (
+          <></>
         )}
       </Grid>
     </Grid>

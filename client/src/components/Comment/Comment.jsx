@@ -115,7 +115,9 @@ function Comment({ comment }) {
               <Track track={thisComment.spotifyTrack} />
             </Box>
           )}
-          <Typography variant="body1">{thisComment.comment}</Typography>
+          <Typography variant="body1" sx={{ whiteSpace: "pre-line" }}>
+            {thisComment.comment}
+          </Typography>
           <Stack direction="row" alignItems="center">
             <LikeButton comment={thisComment} />
             {client.user._id === thisComment.author._id && (

@@ -84,7 +84,11 @@ function PostPreview({ post }) {
             <Grid item xs={1} />
             <Grid item xs={10}>
               <PostPreviewDescription>
-                <Typography variant="body1" color="white">
+                <Typography
+                  variant="body1"
+                  color="white"
+                  sx={{ whiteSpace: "pre-line" }}
+                >
                   {post.description}
                 </Typography>
               </PostPreviewDescription>
