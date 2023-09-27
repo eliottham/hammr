@@ -50,7 +50,7 @@ function Player() {
       window.onSpotifyWebPlaybackSDKReady = () => {
         console.log("player initialized");
         client.spotifyPlayer = new window.Spotify.Player({
-          name: "Zam Web Player",
+          name: "Hammr Web Player",
           getOAuthToken: async (cb) => {
             cb(spotifyAccessToken);
           },
